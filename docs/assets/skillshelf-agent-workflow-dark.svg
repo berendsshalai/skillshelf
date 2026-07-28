@@ -1,0 +1,298 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1050" role="img" aria-labelledby="workflow-title workflow-desc">
+  <title id="workflow-title">SkillShelf Agent Workflow Map</title>
+  <desc id="workflow-desc">A central SkillShelf orchestrator receives a user request, delegates bounded work to five specialist agents, receives structured results from every specialist, and returns a final verified response.</desc>
+  <defs>
+    <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B9CAF"/>
+    </marker>
+    <marker id="arrow-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#58A6FF"/>
+    </marker>
+    <style>
+      .title{font:700 23px Inter,"Segoe UI",Arial,sans-serif;fill:#F0F6FC}
+      .subtitle{font:600 13px Inter,"Segoe UI",Arial,sans-serif;fill:#A8B6C5;letter-spacing:.5px}
+      .node-title{font:700 18px Inter,"Segoe UI",Arial,sans-serif;fill:#F0F6FC}
+      .agent-title{font:700 16px Inter,"Segoe UI",Arial,sans-serif;fill:#F0F6FC}
+      .skill{font:600 11px Inter,"Segoe UI",Arial,sans-serif;fill:#A8B6C5}
+      .section{font:700 11px Inter,"Segoe UI",Arial,sans-serif;fill:#F0F6FC;letter-spacing:1px}
+      .copy{font:400 11.5px Inter,"Segoe UI",Arial,sans-serif;fill:#D0DAE5}
+      .small{font:600 10.5px Inter,"Segoe UI",Arial,sans-serif;fill:#A8B6C5}
+      .master-title{font:700 25px Inter,"Segoe UI",Arial,sans-serif;fill:#58A6FF}
+      .master-copy{font:500 12.5px Inter,"Segoe UI",Arial,sans-serif;fill:#D8E3EE}
+      .pill{font:700 10.5px Inter,"Segoe UI",Arial,sans-serif;fill:#58A6FF}
+      .edge-label{font:700 10px Inter,"Segoe UI",Arial,sans-serif;fill:#A8B6C5}
+      .solid{fill:none;stroke:#8B9CAF;stroke-width:2.25;marker-end:url(#arrow-solid)}
+      .return{fill:none;stroke:#58A6FF;stroke-width:2;stroke-dasharray:7 6;marker-end:url(#arrow-return)}
+      .divider{stroke:#30363D;stroke-width:1}
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="#0D1117"/>
+  <text x="36" y="34" class="title">SkillShelf agent workflow</text>
+  <text x="1564" y="32" text-anchor="end" class="subtitle">CODEX-NATIVE + OPENAI AGENTS SDK MANAGER PATTERN</text>
+
+  <g id="connections" aria-label="Delegation and structured return connections">
+    <path class="solid" d="M296 170 H350" data-from="user-input" data-to="skillshelf-orchestrator"/>
+    <text x="323" y="157" text-anchor="middle" class="edge-label">COMPLETE REQUEST</text>
+    <path class="solid" d="M1250 170 H1304" data-from="skillshelf-orchestrator" data-to="final-response"/>
+    <text x="1277" y="157" text-anchor="middle" class="edge-label">VERIFIED SYNTHESIS</text>
+
+    <path class="solid" d="M446 306 V342 H179 V438" data-from="skillshelf-orchestrator" data-to="find-skills-agent"/>
+    <path class="solid" d="M620 306 V358 H489 V438" data-from="skillshelf-orchestrator" data-to="superpowers-agent"/>
+    <path class="solid" d="M800 306 V374 H799 V438" data-from="skillshelf-orchestrator" data-to="memory-agent"/>
+    <path class="solid" d="M980 306 V358 H1109 V438" data-from="skillshelf-orchestrator" data-to="design-intelligence-agent"/>
+    <path class="solid" d="M1154 306 V342 H1419 V438" data-from="skillshelf-orchestrator" data-to="skill-governor-agent"/>
+
+    <path class="return" d="M194 438 V330 H480 V306" data-from="find-skills-agent" data-to="skillshelf-orchestrator"/>
+    <path class="return" d="M504 438 V346 H646 V306" data-from="superpowers-agent" data-to="skillshelf-orchestrator"/>
+    <path class="return" d="M814 438 V362 H826 V306" data-from="memory-agent" data-to="skillshelf-orchestrator"/>
+    <path class="return" d="M1124 438 V346 H1006 V306" data-from="design-intelligence-agent" data-to="skillshelf-orchestrator"/>
+    <path class="return" d="M1434 438 V330 H1120 V306" data-from="skill-governor-agent" data-to="skillshelf-orchestrator"/>
+
+    <text x="179" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
+    <text x="489" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
+    <text x="799" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
+    <text x="1109" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
+    <text x="1419" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ GOVERNANCE</text>
+  </g>
+
+  <g id="user-input" aria-label="User task request">
+    <rect x="28" y="91" width="268" height="158" rx="14" fill="#161B22" stroke="#65778A" stroke-width="2"/>
+    <circle cx="64" cy="128" r="16" fill="#102A43" stroke="#58A6FF" stroke-width="2"/>
+    <circle cx="64" cy="123" r="5" fill="#58A6FF"/>
+    <path d="M53 143 Q64 133 75 143" fill="none" stroke="#58A6FF" stroke-width="2"/>
+    <text x="90" y="125" class="node-title">User / Task Request</text>
+    <text x="48" y="166" class="copy">Goal · Context · Constraints</text>
+    <text x="48" y="187" class="copy">Files · Approval authority</text>
+    <rect x="48" y="207" width="188" height="25" rx="12" fill="#202B36"/>
+    <text x="142" y="224" text-anchor="middle" class="small">One complete request contract</text>
+  </g>
+
+  <g id="skillshelf-orchestrator" aria-label="Central SkillShelf orchestrator">
+    <rect x="350" y="53" width="900" height="253" rx="22" fill="#102A43" stroke="#58A6FF" stroke-width="3"/>
+    <path d="M350 119 H1250" stroke="#44576B" stroke-width="1.5"/>
+    <text x="382" y="88" class="master-title">SkillShelf Orchestrator</text>
+    <text x="382" y="109" class="subtitle">SkillShelf Master · SkillShelfMaster · Central brain</text>
+
+    <g aria-label="Command core geometry" fill="none" stroke="#58A6FF" stroke-width="2">
+      <circle cx="1168" cy="84" r="11" fill="#161B22"/>
+      <circle cx="1204" cy="84" r="7" fill="#161B22"/>
+      <circle cx="1134" cy="84" r="7" fill="#161B22"/>
+      <path d="M1141 84 H1157 M1179 84 H1197 M1168 95 V108"/>
+      <circle cx="1168" cy="108" r="5" fill="#58A6FF"/>
+    </g>
+
+    <text x="382" y="148" class="master-copy">1. Interpret complete user goal</text>
+    <text x="382" y="174" class="master-copy">2. Classify intent and risk</text>
+    <text x="382" y="200" class="master-copy">3. Select smallest sufficient specialist set</text>
+    <text x="382" y="226" class="master-copy">4. Build bounded delegation briefs</text>
+    <text x="765" y="148" class="master-copy">5. Enforce tool, approval and token limits</text>
+    <text x="765" y="174" class="master-copy">6. Reconcile structured evidence</text>
+    <text x="765" y="200" class="master-copy">7. Return final user-facing response</text>
+
+    <g aria-label="Orchestration responsibilities">
+      <rect x="765" y="218" width="76" height="26" rx="13" fill="#161B22" stroke="#65778A"/><text x="803" y="235" text-anchor="middle" class="pill">Routing</text>
+      <rect x="849" y="218" width="112" height="26" rx="13" fill="#161B22" stroke="#65778A"/><text x="905" y="235" text-anchor="middle" class="pill">Context control</text>
+      <rect x="969" y="218" width="75" height="26" rx="13" fill="#161B22" stroke="#65778A"/><text x="1006" y="235" text-anchor="middle" class="pill">Budgets</text>
+      <rect x="1052" y="218" width="84" height="26" rx="13" fill="#161B22" stroke="#65778A"/><text x="1094" y="235" text-anchor="middle" class="pill">Approvals</text>
+      <rect x="1144" y="218" width="78" height="26" rx="13" fill="#161B22" stroke="#65778A"/><text x="1183" y="235" text-anchor="middle" class="pill">Evidence</text>
+      <rect x="765" y="253" width="146" height="26" rx="13" fill="#58A6FF"/><text x="838" y="270" text-anchor="middle" style="font:700 10.5px Inter,'Segoe UI',Arial,sans-serif;fill:#0D1117">FINAL SYNTHESIS</text>
+    </g>
+    <text x="1222" y="273" text-anchor="end" class="small">Smallest sufficient specialist set only</text>
+  </g>
+
+  <g id="final-response" aria-label="Final structured response">
+    <rect x="1304" y="91" width="268" height="158" rx="14" fill="#161B22" stroke="#58A6FF" stroke-width="2.5"/>
+    <circle cx="1340" cy="128" r="16" fill="#102A43" stroke="#58A6FF" stroke-width="2"/>
+    <path d="M1332 128 L1338 134 L1349 121" fill="none" stroke="#58A6FF" stroke-width="2.5"/>
+    <text x="1366" y="125" class="node-title">Final Structured</text>
+    <text x="1366" y="146" class="node-title">Response</text>
+    <text x="1324" y="178" class="copy">Answer · Evidence · Files changed</text>
+    <text x="1324" y="199" class="copy">Tests · Usage · Risks · Next action</text>
+    <text x="1438" y="229" text-anchor="middle" class="small">Orchestrator is final authority</text>
+  </g>
+
+  <g id="find-skills-agent" aria-label="Find Skills Agent input process and output">
+    <rect x="34" y="438" width="290" height="546" rx="14" fill="#161B22" stroke="#39C5CF" stroke-width="2"/>
+    <rect x="34" y="438" width="290" height="62" rx="14" fill="#123039"/>
+    <path d="M34 486 V500 H324 V486" fill="#123039"/>
+    <circle cx="62" cy="468" r="10" fill="none" stroke="#39C5CF" stroke-width="2.5"/><path d="M70 476 L79 485" stroke="#39C5CF" stroke-width="3"/>
+    <rect x="70" y="473" width="15" height="13" rx="2" fill="#161B22" stroke="#39C5CF"/><path d="M74 479 L77 482 L82 476" fill="none" stroke="#39C5CF" stroke-width="1.5"/>
+    <text x="96" y="466" class="agent-title">Find Skills Agent</text>
+    <text x="96" y="484" class="skill">find-skills-codex</text>
+    <text x="52" y="525" class="section">INPUT</text>
+    <text x="52" y="548" class="copy">• Required capability or task</text>
+    <text x="52" y="566" class="copy">• Platform and environment</text>
+    <text x="52" y="584" class="copy">• Installed skills</text>
+    <text x="52" y="602" class="copy">• Security, licence and scope</text>
+    <path d="M179 612 V626" class="solid"/>
+    <line x1="46" y1="633" x2="312" y2="633" class="divider"/>
+    <text x="52" y="657" class="section">AGENT PROCESS</text>
+    <text x="52" y="680" class="copy">1. Define exact capability gap</text>
+    <text x="52" y="698" class="copy">2. Search trusted sources</text>
+    <text x="52" y="716" class="copy">3. Pin immutable candidates</text>
+    <text x="52" y="734" class="copy">4. Inspect instructions and files</text>
+    <text x="52" y="752" class="copy">5. Audit hooks, MCP and licences</text>
+    <text x="52" y="770" class="copy">6. Score security and compatibility</text>
+    <text x="52" y="788" class="copy">7. Reject unsafe candidates</text>
+    <text x="52" y="806" class="copy">8. Return options and trade-offs</text>
+    <path d="M179 816 V830" class="solid"/>
+    <line x1="46" y1="837" x2="312" y2="837" class="divider"/>
+    <text x="52" y="861" class="section">OUTPUT</text>
+    <text x="52" y="884" class="copy">• Ranked verified candidates</text>
+    <text x="52" y="902" class="copy">• Source and version evidence</text>
+    <text x="52" y="920" class="copy">• Security and compatibility</text>
+    <text x="52" y="938" class="copy">• Guidance and limitations</text>
+    <rect x="52" y="950" width="254" height="24" rx="12" fill="#123039"/>
+    <text x="179" y="966" text-anchor="middle" class="small">Verified discovery result</text>
+  </g>
+
+  <g id="superpowers-agent" aria-label="Superpowers Agent input process and output">
+    <rect x="344" y="438" width="290" height="546" rx="14" fill="#161B22" stroke="#A78BFA" stroke-width="2"/>
+    <rect x="344" y="438" width="290" height="62" rx="14" fill="#2A2340"/>
+    <path d="M344 486 V500 H634 V486" fill="#2A2340"/>
+    <path d="M365 460 L356 469 L365 478 M385 460 L394 469 L385 478" fill="none" stroke="#A78BFA" stroke-width="2.5"/>
+    <path d="M369 482 L375 488 L386 477" fill="none" stroke="#A78BFA" stroke-width="2.5"/>
+    <text x="406" y="466" class="agent-title">Superpowers Agent</text>
+    <text x="406" y="484" class="skill">superpowers-codex</text>
+    <text x="362" y="525" class="section">INPUT</text>
+    <text x="362" y="548" class="copy">• Feature, bug or failing test</text>
+    <text x="362" y="566" class="copy">• Repository context</text>
+    <text x="362" y="584" class="copy">• Acceptance criteria</text>
+    <text x="362" y="602" class="copy">• Relevant files and constraints</text>
+    <path d="M489 612 V626" class="solid"/>
+    <line x1="356" y1="633" x2="622" y2="633" class="divider"/>
+    <text x="362" y="657" class="section">AGENT PROCESS</text>
+    <text x="362" y="680" class="copy">1. Classify delivery task</text>
+    <text x="362" y="698" class="copy">2. Inspect current behaviour</text>
+    <text x="362" y="716" class="copy">3. Explore constraints and edges</text>
+    <text x="362" y="734" class="copy">4. Create implementation plan</text>
+    <text x="362" y="752" class="copy">5. Apply TDD where relevant</text>
+    <text x="362" y="770" class="copy">6. Modify authorised files</text>
+    <text x="362" y="788" class="copy">7. Test, lint and verify</text>
+    <text x="362" y="806" class="copy">8. Review before completion</text>
+    <path d="M489 816 V830" class="solid"/>
+    <line x1="356" y1="837" x2="622" y2="837" class="divider"/>
+    <text x="362" y="861" class="section">OUTPUT</text>
+    <text x="362" y="884" class="copy">• Working code or patch</text>
+    <text x="362" y="902" class="copy">• Changed-file evidence</text>
+    <text x="362" y="920" class="copy">• Tests and review findings</text>
+    <text x="362" y="938" class="copy">• Risks and recovery</text>
+    <rect x="362" y="950" width="254" height="24" rx="12" fill="#2A2340"/>
+    <text x="489" y="966" text-anchor="middle" class="small">Verified delivery result</text>
+  </g>
+
+  <g id="memory-agent" aria-label="Memory Agent input process and output">
+    <rect x="654" y="438" width="290" height="546" rx="14" fill="#161B22" stroke="#55D69E" stroke-width="2"/>
+    <rect x="654" y="438" width="290" height="62" rx="14" fill="#17352B"/>
+    <path d="M654 486 V500 H944 V486" fill="#17352B"/>
+    <ellipse cx="679" cy="460" rx="15" ry="6" fill="#161B22" stroke="#55D69E" stroke-width="2"/>
+    <path d="M664 460 V479 C664 486 694 486 694 479 V460 M664 470 C664 477 694 477 694 470" fill="none" stroke="#55D69E" stroke-width="2"/>
+    <circle cx="702" cy="462" r="3" fill="#55D69E"/><circle cx="710" cy="470" r="3" fill="#55D69E"/><path d="M702 462 L710 470" stroke="#55D69E"/>
+    <text x="716" y="466" class="agent-title">Memory Agent</text>
+    <text x="716" y="484" class="skill">codex-memory</text>
+    <text x="672" y="525" class="section">INPUT</text>
+    <text x="672" y="548" class="copy">• Project identity and recall question</text>
+    <text x="672" y="566" class="copy">• Time or topic filters</text>
+    <text x="672" y="584" class="copy">• Relevant session context</text>
+    <text x="672" y="602" class="copy">• Privacy and project scope</text>
+    <path d="M799 612 V626" class="solid"/>
+    <line x1="666" y1="633" x2="932" y2="633" class="divider"/>
+    <text x="672" y="657" class="section">AGENT PROCESS</text>
+    <text x="672" y="680" class="copy">1. Search compact memory index</text>
+    <text x="672" y="698" class="copy">2. Filter by relevance</text>
+    <text x="672" y="716" class="copy">3. Build a bounded timeline</text>
+    <text x="672" y="734" class="copy">4. Fetch selected observations</text>
+    <text x="672" y="752" class="copy">5. Exclude secrets and private data</text>
+    <text x="672" y="770" class="copy">6. Separate evidence from inference</text>
+    <text x="672" y="788" class="copy">7. Compress findings for use</text>
+    <path d="M799 798 V830" class="solid"/>
+    <line x1="666" y1="837" x2="932" y2="837" class="divider"/>
+    <text x="672" y="861" class="section">OUTPUT</text>
+    <text x="672" y="884" class="copy">• Prior decisions and history</text>
+    <text x="672" y="902" class="copy">• Selected observations</text>
+    <text x="672" y="920" class="copy">• Timeline and confidence</text>
+    <text x="672" y="938" class="copy">• Source distinctions</text>
+    <rect x="672" y="950" width="254" height="24" rx="12" fill="#17352B"/>
+    <text x="799" y="966" text-anchor="middle" class="small">Bounded memory context</text>
+  </g>
+
+  <g id="design-intelligence-agent" aria-label="Design Intelligence Agent input process and output">
+    <rect x="964" y="438" width="290" height="546" rx="14" fill="#161B22" stroke="#F58AB5" stroke-width="2"/>
+    <rect x="964" y="438" width="290" height="62" rx="14" fill="#3A2330"/>
+    <path d="M964 486 V500 H1254 V486" fill="#3A2330"/>
+    <rect x="984" y="456" width="31" height="24" rx="3" fill="#161B22" stroke="#F58AB5" stroke-width="2"/>
+    <path d="M992 486 L1005 473 M1002 489 L1008 483" stroke="#F58AB5" stroke-width="2.5"/>
+    <circle cx="1012" cy="457" r="4" fill="#F58AB5"/>
+    <text x="1026" y="466" class="agent-title">Design Intelligence Agent</text>
+    <text x="1026" y="484" class="skill">codex-design-intelligence</text>
+    <text x="982" y="525" class="section">INPUT</text>
+    <text x="982" y="548" class="copy">• Product or interface brief</text>
+    <text x="982" y="566" class="copy">• Frontend and design system</text>
+    <text x="982" y="584" class="copy">• References and accessibility</text>
+    <text x="982" y="602" class="copy">• Platform and viewport</text>
+    <path d="M1109 612 V626" class="solid"/>
+    <line x1="976" y1="633" x2="1242" y2="633" class="divider"/>
+    <text x="982" y="657" class="section">AGENT PROCESS</text>
+    <text x="982" y="680" class="copy">1. Inspect product truth and UI</text>
+    <text x="982" y="698" class="copy">2. Select surface mode</text>
+    <text x="982" y="716" class="copy">3. Apply product/UX structure</text>
+    <text x="982" y="734" class="copy">4. Apply bounded visual direction</text>
+    <text x="982" y="752" class="copy">5. Preserve function and content</text>
+    <text x="982" y="770" class="copy">6. Audit a11y and responsiveness</text>
+    <text x="982" y="788" class="copy">7. Implement bounded changes</text>
+    <text x="982" y="806" class="copy">8. Consolidated visual/tech review</text>
+    <path d="M1109 816 V830" class="solid"/>
+    <line x1="976" y1="837" x2="1242" y2="837" class="divider"/>
+    <text x="982" y="861" class="section">OUTPUT</text>
+    <text x="982" y="884" class="copy">• Implementation or guidance</text>
+    <text x="982" y="902" class="copy">• Accessibility and usability</text>
+    <text x="982" y="920" class="copy">• Responsive and visual evidence</text>
+    <text x="982" y="938" class="copy">• Remaining design risks</text>
+    <rect x="982" y="950" width="254" height="24" rx="12" fill="#3A2330"/>
+    <text x="1109" y="966" text-anchor="middle" class="small">Verified design result</text>
+  </g>
+
+  <g id="skill-governor-agent" aria-label="Skill Governor Agent input process and output">
+    <rect x="1274" y="438" width="290" height="546" rx="14" fill="#161B22" stroke="#F0A85C" stroke-width="2"/>
+    <rect x="1274" y="438" width="290" height="62" rx="14" fill="#3A2A1C"/>
+    <path d="M1274 486 V500 H1564 V486" fill="#3A2A1C"/>
+    <path d="M1303 454 L1318 460 V471 C1318 480 1311 486 1303 490 C1295 486 1288 480 1288 471 V460 Z" fill="#161B22" stroke="#F0A85C" stroke-width="2"/>
+    <path d="M1296 471 L1301 476 L1311 465" fill="none" stroke="#F0A85C" stroke-width="2"/>
+    <text x="1336" y="466" class="agent-title">Skill Governor Agent</text>
+    <text x="1336" y="484" class="skill">codex-skill-governor</text>
+    <text x="1292" y="525" class="section">INPUT</text>
+    <text x="1292" y="548" class="copy">• Execution observations</text>
+    <text x="1292" y="566" class="copy">• Failures and user corrections</text>
+    <text x="1292" y="584" class="copy">• Evaluation failures</text>
+    <text x="1292" y="602" class="copy">• Reusable improvement candidates</text>
+    <path d="M1419 612 V626" class="solid"/>
+    <line x1="1286" y1="633" x2="1552" y2="633" class="divider"/>
+    <text x="1292" y="657" class="section">AGENT PROCESS</text>
+    <text x="1292" y="680" class="copy">1. Read compact evidence</text>
+    <text x="1292" y="698" class="copy">2. Separate method from history</text>
+    <text x="1292" y="716" class="copy">3. Validate evidence and scope</text>
+    <text x="1292" y="734" class="copy">4. Detect gaps and contradictions</text>
+    <text x="1292" y="752" class="copy">5. Stage a complete proposal</text>
+    <text x="1292" y="770" class="copy">6. Run structural/behavioural evals</text>
+    <text x="1292" y="788" class="copy">7. Record regression risks</text>
+    <text x="1292" y="806" class="copy">8. Wait for explicit approval</text>
+    <path d="M1419 816 V830" class="solid"/>
+    <line x1="1286" y1="837" x2="1552" y2="837" class="divider"/>
+    <text x="1292" y="861" class="section">OUTPUT</text>
+    <text x="1292" y="884" class="copy">• Governance observations</text>
+    <text x="1292" y="902" class="copy">• Principles and staged proposals</text>
+    <text x="1292" y="920" class="copy">• Evaluation and regression report</text>
+    <text x="1292" y="938" class="copy">• Approval-safe upgrade path</text>
+    <rect x="1292" y="950" width="254" height="24" rx="12" fill="#3A2A1C"/>
+    <text x="1419" y="966" text-anchor="middle" class="small">Structured GovernanceResult</text>
+  </g>
+
+  <g id="legend" aria-label="Connector legend">
+    <line x1="38" y1="1020" x2="88" y2="1020" class="solid"/>
+    <text x="100" y="1024" class="small">Solid — delegation or execution</text>
+    <line x1="312" y1="1020" x2="362" y2="1020" class="return"/>
+    <text x="374" y="1024" class="small">Dashed — structured result and evidence return</text>
+    <text x="1564" y="1024" text-anchor="end" class="small">Every specialist returns to the orchestrator · no direct final-response path</text>
+  </g>
+</svg>

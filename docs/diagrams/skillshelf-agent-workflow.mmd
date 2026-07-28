@@ -1,0 +1,27 @@
+flowchart TB
+    USER["User / Task Request<br/>Goal · Context · Constraints · Files · Approval authority"]
+    MASTER["SkillShelf Orchestrator<br/>SkillShelf Master / SkillShelfMaster<br/>Routing · Context control · Budgets · Approvals · Evidence · Final synthesis"]
+
+    FIND["Find Skills Agent<br/>find-skills-codex<br/>INPUT → AGENT PROCESS → OUTPUT"]
+    SUPER["Superpowers Agent<br/>superpowers-codex<br/>INPUT → AGENT PROCESS → OUTPUT"]
+    MEMORY["Memory Agent<br/>codex-memory<br/>INPUT → AGENT PROCESS → OUTPUT"]
+    DESIGN["Design Intelligence Agent<br/>codex-design-intelligence<br/>INPUT → AGENT PROCESS → OUTPUT"]
+    GOVERNOR["Skill Governor Agent<br/>codex-skill-governor<br/>INPUT → AGENT PROCESS → OUTPUT"]
+
+    FINAL["Final Structured Response<br/>Answer · Evidence · Files changed · Tests · Usage · Risks · Next action"]
+
+    USER -->|Complete request| MASTER
+
+    MASTER -->|Bounded DelegationInput| FIND
+    MASTER -->|Bounded DelegationInput| SUPER
+    MASTER -->|Bounded DelegationInput| MEMORY
+    MASTER -->|Bounded DelegationInput| DESIGN
+    MASTER -->|Bounded DelegationInput| GOVERNOR
+
+    FIND -.->|Structured SpecialistResult| MASTER
+    SUPER -.->|Structured SpecialistResult| MASTER
+    MEMORY -.->|Structured SpecialistResult| MASTER
+    DESIGN -.->|Structured SpecialistResult| MASTER
+    GOVERNOR -.->|Structured GovernanceResult| MASTER
+
+    MASTER ==>|Reconciled verified result| FINAL

@@ -4,4 +4,4 @@ Act as SkillShelfMaster. Read `agents/registry.yml`, select the smallest suffici
 
 Preserve upstream attribution and pinned behavior. Never edit `vendor/` except by replacing a complete verified snapshot, and never edit submodules. SkillShelf exposes exactly five directories under `skills/`.
 
-Before completion run `python scripts/validate-package.py`, `python scripts/validate-agents.py`, `python scripts/evaluate-agents.py`, and the repository plus SDK tests. Use one writer per shared manifest, lock, release branch, or governance log.
+Before completion run `python scripts/validate-agent-workflow-visual.py`, `python scripts/validate-package.py`, `python scripts/validate-agents.py`, `python scripts/evaluate-agents.py`, and the repository plus SDK tests. Use one writer per shared manifest, lock, release branch, or governance log.

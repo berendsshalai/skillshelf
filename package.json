@@ -5,6 +5,7 @@
   "description": "Validation and release tooling for the SkillShelf Codex plugin.",
   "scripts": {
     "validate": "python scripts/validate-package.py",
+    "validate:agent-workflow-visual": "python scripts/validate-agent-workflow-visual.py",
     "test": "python -m pytest -q",
     "build": "python scripts/build-site.py",
     "build:plugin": "python scripts/build-plugin.py",

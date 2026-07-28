@@ -42,6 +42,38 @@ python scripts/validate-version.py
 
 The master routes high-confidence single-domain tasks directly, otherwise retaining orchestration and user communication. Specialists use bounded instructions, MCP allowlists, prohibited capabilities, turn limits, and token budgets. Runtime-recorded artifacts, file changes, tests, and tool calls are evidence; model findings remain interpretation.
 
+## Agent workflow
+
+SkillShelf uses an orchestrator-centered manager architecture. The
+`SkillShelfMaster` interprets the complete request, selects the smallest
+sufficient specialist set, supplies each specialist with bounded context and
+authority, reconciles structured evidence, and remains responsible for the
+final response.
+
+<picture>
+  <source
+    media="(prefers-color-scheme: dark)"
+    srcset="./docs/assets/skillshelf-agent-workflow-dark.svg">
+  <source
+    media="(prefers-color-scheme: light)"
+    srcset="./docs/assets/skillshelf-agent-workflow.svg">
+  <img
+    src="./docs/assets/skillshelf-agent-workflow.svg"
+    alt="SkillShelf agent workflow showing a user request entering the central SkillShelf Master orchestrator, routing to five bounded specialist agents, and every specialist returning structured evidence to the orchestrator before the final response."
+    width="100%">
+</picture>
+
+Each specialist follows the same contract:
+
+```text
+bounded input
+→ specialist workflow
+→ structured evidence
+→ orchestrator reconciliation
+```
+
+[Open the detailed workflow map](./docs/agents/WORKFLOW_MAP.md)
+
 ## Installation
 
 Agent runtime:

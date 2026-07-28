@@ -5,6 +5,7 @@ import hashlib
 import json
 import pathlib
 import re
+import subprocess
 import sys
 import tomllib
 
@@ -167,6 +168,11 @@ def validate_security() -> None:
                 fail(f"possible secret in {path.relative_to(ROOT)}")
 
 def main() -> int:
+    subprocess.run(
+        [sys.executable, str(ROOT / "scripts/validate-agent-workflow-visual.py")],
+        cwd=ROOT,
+        check=True,
+    )
     validate_skills()
     validate_json_toml()
     validate_plugin_mirror()
