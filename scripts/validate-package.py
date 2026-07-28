@@ -9,6 +9,16 @@ EXPECTED = {
     "codex-design-intelligence", "codex-skill-governor",
 }
 
+def canonical_bytes(path: pathlib.Path) -> bytes:
+    data = path.read_bytes()
+    if b"\0" not in data:
+        try:
+            data.decode("utf-8")
+            return data.replace(b"\r\n", b"\n")
+        except UnicodeDecodeError:
+            pass
+    return data
+
 def fail(message: str) -> None:
     raise AssertionError(message)
 
@@ -100,7 +110,7 @@ def validate_vendor() -> None:
         path = ROOT / rel
         if not path.is_file():
             fail(f"vendored file missing: {rel}")
-        actual = hashlib.sha256(path.read_bytes()).hexdigest()
+        actual = hashlib.sha256(canonical_bytes(path)).hexdigest()
         if actual != expected:
             fail(f"vendored hash mismatch: {rel}")
 

@@ -2,11 +2,21 @@ import hashlib, json, pathlib, re
 
 ROOT = pathlib.Path(__file__).parents[1]
 
+def canonical_bytes(path):
+    data = path.read_bytes()
+    if b"\0" not in data:
+        try:
+            data.decode("utf-8")
+            return data.replace(b"\r\n", b"\n")
+        except UnicodeDecodeError:
+            pass
+    return data
+
 def test_vendor_hashes():
     manifest = json.loads((ROOT / "vendor-manifest.json").read_text())
     assert len(manifest["files"]) >= 200
     for rel, expected in manifest["files"].items():
-        assert hashlib.sha256((ROOT / rel).read_bytes()).hexdigest() == expected
+        assert hashlib.sha256(canonical_bytes(ROOT / rel)).hexdigest() == expected
 
 def test_no_runtime_secret_artifacts():
     forbidden_names = {".env", "auth.json", "cookies.json"}

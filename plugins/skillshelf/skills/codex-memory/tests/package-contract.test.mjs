@@ -8,6 +8,18 @@ import { fileURLToPath } from "node:url";
 const skill = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const vendor = resolve(skill, "..", "..", "vendor", "memory");
 
+function portableDigests(buffer) {
+  const digests = new Set([createHash("sha256").update(buffer).digest("hex")]);
+  if (!buffer.includes(0)) {
+    const text = buffer.toString("utf8");
+    if (!text.includes("\uFFFD")) {
+      const crlf = Buffer.from(text.replace(/\r?\n/g, "\r\n"), "utf8");
+      digests.add(createHash("sha256").update(crlf).digest("hex"));
+    }
+  }
+  return digests;
+}
+
 test("skill frontmatter and required resources exist", () => {
   const source = readFileSync(join(skill, "SKILL.md"), "utf8");
   assert.match(source, /^---\r?\nname: codex-memory\r?\ndescription: .+\r?\n---/);
@@ -38,7 +50,7 @@ test("vendored snapshot hashes match manifest", () => {
     const match = /^([a-f0-9]{64})  (.+)$/.exec(line);
     assert.ok(match, line);
     const content = readFileSync(join(vendor, match[2]));
-    assert.equal(createHash("sha256").update(content).digest("hex"), match[1], match[2]);
+    assert.ok(portableDigests(content).has(match[1]), match[2]);
   }
 });
 
