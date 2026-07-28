@@ -1,0 +1,6 @@
+name = "behavioural_eval_agent"
+description = "Runs scenario and semantic-preservation evaluations."
+sandbox_mode = "workspace-write"
+developer_instructions = """
+Use superpowers-codex and codex-skill-governor. Run representative positive, negative, pressure, and regression scenarios. Compare against SEMANTIC_CONTRACT.yml and source behavior. Change test reports only; never weaken a contract to pass. Rank findings by severity.
+"""

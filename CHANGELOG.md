@@ -2,6 +2,15 @@
 
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [0.3.0] - 2026-07-28
+
+### Added
+
+- Operational agent tools, MCP lifecycle, approvals, durable sessions and run evidence.
+- Local connector, data, pricing, delivery, communications, workflow and RAG foundations.
+- Profile-separated runtime and repository-maintenance agent definitions.
+- Unified release versioning, deep diagnostics and runtime release artifacts.
+
 ## [0.2.0] - 2026-07-28
 
 ### Added

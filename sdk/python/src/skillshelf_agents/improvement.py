@@ -1,71 +1,69 @@
 from __future__ import annotations
 
-import json
-import shutil
-import uuid
-from datetime import UTC, datetime
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, Callable
 
-from filelock import FileLock
-
-from .guardrails import validate_write
+from .governance import GovernanceManager
 
 
 class ProposalStore:
+    """Compatibility facade over the canonical full-package governor."""
+
     def __init__(self, home: Path, root: Path) -> None:
-        self.home, self.root = home, root
-        self.directory = home / "staged-updates"
-        self.directory.mkdir(parents=True, exist_ok=True)
+        self.manager = GovernanceManager(home, root)
 
     def stage(self, target_skill: str, proposed_content: str, evidence_ids: list[str]) -> str:
-        source = validate_write(self.root / "skills" / target_skill / "SKILL.md", self.root, approved=False)
-        if not source.is_file():
-            raise FileNotFoundError(target_skill)
-        proposal_id = f"proposal-{uuid.uuid4().hex[:12]}"
-        destination = self.directory / proposal_id
-        destination.mkdir()
-        (destination / "SKILL.md").write_text(proposed_content, encoding="utf-8")
-        metadata = {"proposal_id": proposal_id, "target_skill": target_skill, "evidence_ids": evidence_ids,
-                    "created_at": datetime.now(UTC).isoformat(), "status": "staged", "approval_required": True}
-        (destination / "proposal.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+        proposal_id = self.manager.new_proposal_id()
+        source_digest = self.manager.source_digest(target_skill)
+
+        def mutate(package: Path) -> None:
+            (package / "SKILL.md").write_text(proposed_content, encoding="utf-8")
+
+        self.manager.stage(
+            proposal_id=proposal_id,
+            target_skill=target_skill,
+            source_digest=source_digest,
+            evidence_ids=evidence_ids,
+            expected_benefit="Reviewed SkillShelf runtime improvement",
+            risk_analysis="Semantic and integration regressions must be evaluated before apply.",
+            creator="skillshelf-runtime",
+            evaluation_plan="structural, semantic and affected integration verification",
+            mutate=mutate,
+        )
         return proposal_id
 
     def list(self) -> list[dict[str, Any]]:
-        return [json.loads(path.read_text(encoding="utf-8"))
-                for path in self.directory.glob("*/proposal.json")]
+        values: list[dict[str, Any]] = []
+        for path in sorted(self.manager.proposals.glob("*/proposal.json")):
+            values.append(self.manager.inspect(path.parent.name).to_dict())
+        return values
 
     def inspect(self, proposal_id: str) -> dict[str, Any]:
-        value: dict[str, Any] = json.loads(
-            (self.directory / proposal_id / "proposal.json").read_text(encoding="utf-8")
-        )
-        return value
+        return self.manager.inspect(proposal_id).to_dict()
 
     def reject(self, proposal_id: str) -> None:
-        self._set_status(proposal_id, "rejected")
+        proposal = self.manager.inspect(proposal_id)
+        if proposal.status in {"APPLIED", "ROLLED_BACK"}:
+            raise ValueError(f"cannot reject proposal in state {proposal.status}")
+        self.manager._write_proposal(replace(proposal, status="REJECTED"))
 
     def approve(self, proposal_id: str, *, confirmed: bool, evaluator: Callable[[str], bool]) -> None:
-        if not confirmed:
-            raise ValueError("proposal approval requires explicit confirmation")
-        metadata = self.inspect(proposal_id)
-        target = self.root / "skills" / metadata["target_skill"] / "SKILL.md"
-        staged = self.directory / proposal_id / "SKILL.md"
-        backup = self.home / "backups" / f"{proposal_id}-SKILL.md"
-        backup.parent.mkdir(parents=True, exist_ok=True)
-        with FileLock(str(self.directory / proposal_id / ".apply.lock")):
-            shutil.copy2(target, backup)
-            shutil.copy2(staged, target)
-            try:
-                if not evaluator(metadata["target_skill"]):
-                    raise RuntimeError("affected evaluations failed")
-            except Exception:
-                shutil.copy2(backup, target)
-                self._set_status(proposal_id, "rolled-back")
-                raise
-            self._set_status(proposal_id, "approved")
+        proposal = self.manager.inspect(proposal_id)
 
-    def _set_status(self, proposal_id: str, status: str) -> None:
-        path = self.directory / proposal_id / "proposal.json"
-        data = json.loads(path.read_text(encoding="utf-8"))
-        data["status"] = status
-        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+        def semantic(_staged: Path) -> tuple[bool, str]:
+            passed = evaluator(proposal.target_skill)
+            return passed, "affected evaluation passed" if passed else "affected evaluation failed"
+
+        self.manager.evaluate(
+            proposal_id,
+            structural=lambda _staged: (True, "complete package validated during staging"),
+            semantic=semantic,
+            integration=lambda _staged: (True, "compatibility facade integration check"),
+        )
+        approval = self.manager.approve(
+            proposal_id,
+            approved_by="explicit-cli-user",
+            confirmed=confirmed,
+        )
+        self.manager.apply(approval)

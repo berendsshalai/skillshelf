@@ -1,0 +1,10 @@
+{
+  "id": "stock-bad",
+  "name": "Broken Radio",
+  "sku": "RADIO-BAD",
+  "category": "electronics",
+  "location_id": "jhb-01",
+  "stock": -1,
+  "supplier_price": "100.00",
+  "currency": "ZAR"
+}

@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 """Deterministic structural, provenance, security, agent, MCP, and site validation."""
 from __future__ import annotations
-import hashlib, json, os, pathlib, re, sys, tomllib
+import hashlib
+import json
+import pathlib
+import re
+import sys
+import tomllib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 EXPECTED = {

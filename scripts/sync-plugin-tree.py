@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Build the canonical repo-marketplace plugin tree from root authoring sources."""
 from __future__ import annotations
-import filecmp, pathlib, shutil
+import pathlib
+import shutil
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 TARGET = ROOT / "plugins/skillshelf"

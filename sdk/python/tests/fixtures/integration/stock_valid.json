@@ -1,0 +1,10 @@
+{
+  "id": "stock-001",
+  "name": "Field Radio",
+  "sku": "RADIO-001",
+  "category": "electronics",
+  "location_id": "jhb-01",
+  "stock": 7,
+  "supplier_price": "100.00",
+  "currency": "ZAR"
+}

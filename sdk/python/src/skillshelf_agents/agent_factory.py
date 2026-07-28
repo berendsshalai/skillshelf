@@ -22,13 +22,14 @@ class AgentFactory:
             (registry.root / "agents" / "model-profiles.yml").read_text(encoding="utf-8")
         )
 
-    def model_for(self, profile_name: str) -> tuple[str, ModelSettings]:
+    def model_for(self, profile_name: str, *, max_tokens: int | None = None) -> tuple[str, ModelSettings]:
         profile = self.profiles["profiles"][profile_name]
         model = os.getenv(profile["env"], os.getenv("SKILLSHELF_MODEL", self.profiles["default_model"]))
         settings = ModelSettings(
             reasoning=Reasoning(effort=profile["reasoning"]),
             verbosity=profile["verbosity"],
             include_usage=True,
+            max_tokens=max_tokens,
         )
         return model, settings
 
@@ -48,7 +49,10 @@ class AgentFactory:
             f"Prohibited capabilities: {', '.join(definition.prohibited_capabilities)}. "
             "Never call yourself or the master and never claim completion without evidence."
         )
-        model, model_settings = self.model_for(definition.model_profile)
+        model, model_settings = self.model_for(
+            definition.model_profile,
+            max_tokens=definition.token_budget.output,
+        )
         async def lazy_instructions(_context: Any, _agent: Agent) -> str:
             loaded = self.skill_loader.load_skill(definition.skill)
             return "\n\n".join([instruction, "# Required Skill", loaded.content, "# Delegation Contract", delegation])

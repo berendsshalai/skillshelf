@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import pathlib, shutil
+import pathlib
+import shutil
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 source, output = ROOT / "site", ROOT / "_site"

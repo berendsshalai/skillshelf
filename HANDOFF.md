@@ -1,117 +1,105 @@
-# SkillShelf handoff
+# SkillShelf 0.3.0 Handoff
 
-## Agentic runtime patch
+## Release identity
 
-- Branch: `codex/agentic-runtime`
-- Python distribution: `skillshelf-agents` 0.2.0
+- Canonical version: `VERSION` (`0.3.0`)
+- Python distribution: `skillshelf-agents`
 - Import package: `skillshelf_agents`
 - CLI: `skillshelf`
-- Shared source: `agents/registry.yml`
-- Native definitions: one master plus five generated Codex specialists
-- SDK pattern: manager with specialists as tools and lazy dynamic skill instructions
+- Runtime source: `agents/registry.yml`
+- Normal runtime: one master plus five specialists
+- Maintenance: eight separate opt-in definitions
 
-Install:
+Do not describe all fourteen definitions as one flat system. Do not edit versions independently; update `VERSION` and synchronize the checked release surfaces, then run:
+
+```powershell
+python scripts/validate-version.py
+```
+
+## Artifact boundaries
+
+The Codex plugin installs five skills. The Python wheel installs the CLI and SDK runtime. Generated native-agent TOMLs provide Codex role definitions. The local integration modules and tests are part of the wheel source but do not constitute a deployed provider service.
+
+Install the SDK runtime:
 
 ```powershell
 ./scripts/install-agent-runtime.ps1
-& ./sdk/python/.venv/Scripts/skillshelf.exe doctor
+skillshelf doctor --json
 ```
 
-Offline commands do not require an API key. Model-backed `ask` and `run` require `OPENAI_API_KEY`. The installer does not call a model, enable auto-review, modify unrelated Codex configuration, or perform GitHub engagement.
-
-Measured deterministic context comparison:
-
-| Strategy | Estimated skill-file context |
-|---|---:|
-| Eager master with all five `SKILL.md` files | 4,223 tokens |
-| Lazy selected specialist median | 734 tokens |
-
-This bytes/4 measurement shows a 3,489-token reduction for skill-file context while all 5/5 deterministic routing fixtures pass. It is not a measurement of total paid model usage.
-
-Runtime verification:
-
-| Gate | Result |
-|---|---|
-| Registry and generated Codex agents | Passed |
-| SDK unit/integration/safety tests | 22 passed |
-| Repository tests | 34 passed |
-| Memory Node tests | 9 passed |
-| Routing evaluations | 5 passed |
-| Ruff and strict mypy | Passed |
-| Offline CLI/install smoke | Passed |
-| Python wheel and plugin archive | Passed |
-| MCP | Policy/permissions passed; optional live servers degrade as `SKIPPED` |
-| Memory | Progressive integration present; live upstream worker not installed |
-| Governance | Deterministic events, staging, approval and rollback tested |
-| Star support | Explicit `--yes`, auth, idempotency and verification tested |
-
-The SDK session database, Codex project memory and governor observations remain separate. Sensitive tracing is off by default. Auto-review is off and no proposal can mutate a live skill without explicit approval and passing evaluations.
-
-## Project state
-
-The complete release is at `C:\Users\User\Desktop\skillshelf` on branch `main`.
-
-## Components
-
-The repository contains the five routed skills, six pinned upstream submodules, seven-source lock including socials, self-contained vendor slices, eight Codex agents, MCP registry/policy/examples, safe installers, update tooling, test suite, static multi-route site, and release workflows.
-
-## Installation
-
-```powershell
-codex plugin marketplace add https://github.com/berendsshalai/skillshelf
-codex plugin add skillshelf@skillshelf
-```
-
-Repository scope:
+Install project-scoped skills:
 
 ```powershell
 pwsh ./scripts/install.ps1 -Scope Project
 pwsh ./scripts/doctor.ps1 -Scope Project
 ```
 
-## Update
+Install the plugin where the Codex surface supports it:
 
 ```powershell
-python scripts/update-upstreams.py
+codex plugin marketplace add https://github.com/berendsshalai/skillshelf
+codex plugin add skillshelf@skillshelf
 ```
 
-Review drift on a staging branch; never merge it automatically.
+## Operational commands
 
-## Known limitations
+```powershell
+skillshelf agents --json
+skillshelf agents inspect skill-governor-agent --json
+skillshelf ask "Find a skill for accessibility testing" --json
+skillshelf run --agent superpowers-agent "Diagnose the failing test" --json
+skillshelf usage --last --json
+skillshelf sessions list --json
+skillshelf mcp doctor
+skillshelf proposals list --json
+python scripts/generate-agents.py --check
+npm run check
+```
 
-- Live end-to-end memory worker/MCP validation requires installing the pinned upstream claude-mem runtime in a disposable Codex profile. SkillShelf ships the audited integration evidence and privacy/operations layer, not the compiled worker bundle.
-- Universal OpenAI Plugins Directory availability requires separate portal review and approval; publishing this GitHub repository does not imply directory approval.
+`ask` and `run` require `OPENAI_API_KEY`. Registry inspection, generation checks, package validation, and deterministic tests can run offline.
 
-## Verification
+## Verified local capability
 
-| Suite | Result |
-|---|---|
-| Package/schema/provenance/security validator | Passed |
-| Python structural, behavioral, governor, site, and installation tests | 34 passed |
-| Memory Node tests | 9 passed |
-| Plugin creator validator | Passed |
-| PowerShell syntax | Passed |
-| Static site build | 11 required artifacts verified |
-| Plugin archive | 328 files verified |
-| Isolated Codex plugin install/reinstall/remove | Passed |
-| Browser desktop/mobile overflow | 0 px overflow at 1440 and 320 widths |
-| Browser socials | 7/7 secure cards, metadata and structured data passed |
-| Browser console | 0 errors |
+The deterministic integration proof uses a real loopback HTTP server, local SQLite, fixed fixtures, and mock communication adapters. It covers connector safety/retries/pagination/ETag, immutable raw data, canonical records and quarantine, exact Decimal price `ZAR 156.25`, business-day delivery, consent/authority, mock email and WhatsApp, durable stock-to-offer restart, idempotent webhooks, cited FTS retrieval, and capability suggestions.
+
+```powershell
+$env:PYTHONPATH='sdk/python/src'
+& sdk/python/.venv/Scripts/python.exe -m pytest -q sdk/python/tests/test_integration_*.py --basetemp work/pytest-integrations
+```
+
+The optional web extra supplies a limited FastAPI control plane. It validates/stores connector manifests and exposes local status, but live sync and HTTP workflow execution are intentionally not wired.
+
+## Evidence and evaluation boundary
+
+Runtime-recorded artifacts, file changes, test executions, and tool calls are evidence. Agent summaries, findings, quality judgments, and evaluator commentary are model interpretation. Offline evaluation success must not be reported as credentialled model success.
+
+Deferred live work includes OpenAI model calls, upstream memory worker/MCP validation, external connector credentials, carrier rates, email/WhatsApp delivery, webhook signatures, and protected model-quality evaluation. No PostgreSQL deployment or generated OpenAPI artifact is part of 0.3.0.
+
+## Verification sequence
+
+```powershell
+python scripts/validate-version.py
+python scripts/validate-package.py
+python scripts/generate-agents.py --check
+python -m pytest -q
+node --test skills/codex-memory/tests/*.test.mjs
+python scripts/build-site.py
+python scripts/build-plugin.py
+```
+
+Report actual results from the current checkout. Do not preserve historical pass counts as if they were newly measured.
 
 ## Recovery
 
-1. For project skills, run `pwsh ./scripts/uninstall.ps1 -Scope Project`.
-2. Restore the relevant `.skillshelf-backup-<timestamp>` directory created beside the installed skills.
-3. For memory, run the dry-run `pwsh ./scripts/uninstall-memory.ps1`, then repeat with `-Execute` only after checking the reported config backup.
-4. Re-clone with `git clone --recurse-submodules` and check out tag `v0.1.0` to reconstruct the release.
+For current 0.3.0 project installations:
 
-## Release record
+1. Run `pwsh ./scripts/uninstall.ps1 -Scope Project`.
+2. Restore the relevant `.skillshelf-backup-<timestamp>` directory.
+3. For memory, run its dry-run uninstall/recovery command first and execute only after reviewing the reported target and backup.
+4. Re-clone with submodules and check out the intended 0.3.0 release reference when one is published.
 
-- Repository: `https://github.com/berendsshalai/skillshelf`
-- Local path: `C:\Users\User\Desktop\skillshelf`
-- Branch: `main`
-- Commit: the annotated release reference `v0.1.0^{commit}` resolves the exact tested release commit
-- Tag: `v0.1.0`
-- GitHub Pages: `https://berendsshalai.github.io/skillshelf/`
-- Test results: 34 Python + 9 memory tests passed; all build, schema, plugin, browser, and installation checks passed
-- Upstream pins and licences: `upstream-lock.json` and `THIRD_PARTY_NOTICES.md`
+The old `v0.1.0` reconstruction instructions are historical and are not the current-release recovery path.
+
+## Provenance and licensing
+
+Preserve `upstream-lock.json`, every `PROVENANCE.yml`, `vendor-manifest.json`, and `THIRD_PARTY_NOTICES.md`. Upstream updates require a staging branch, licence review, complete snapshot regeneration, semantic/security tests, and human review. SkillShelf-authored MIT code does not relicense Apache-2.0 or CC BY 4.0 vendored material.

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import hashlib, json, pathlib
+import hashlib
+import json
+import pathlib
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 files = {}

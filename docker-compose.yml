@@ -1,0 +1,27 @@
+services:
+  skillshelf:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - skillshelf-data:/data
+    environment:
+      SKILLSHELF_HOME: /data
+    restart: unless-stopped
+  postgres:
+    image: postgres:17-alpine
+    profiles: ["production"]
+    environment:
+      POSTGRES_DB: skillshelf
+      POSTGRES_USER: skillshelf
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+secrets:
+  postgres_password:
+    file: ./deploy/postgres_password.example
+volumes:
+  skillshelf-data:
+  postgres-data:

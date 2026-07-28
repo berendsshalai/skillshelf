@@ -1,0 +1,13 @@
+{
+  "id": "retail-standard",
+  "version": 1,
+  "currency": "ZAR",
+  "target_margin_rate": "0.20",
+  "fixed_profit": "0",
+  "payment_fee_rate": "0",
+  "handling_fee": "25.00",
+  "delivery_subsidy": "0",
+  "risk_buffer": "0",
+  "rounding_increment": "0.01",
+  "effective_from": "2026-01-01T00:00:00+00:00"
+}

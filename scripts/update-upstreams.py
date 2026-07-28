@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Report upstream drift and create a review report; never merge or mutate pins."""
 from __future__ import annotations
-import argparse, datetime, json, pathlib, subprocess
+import argparse
+import datetime
+import json
+import pathlib
+import subprocess
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 

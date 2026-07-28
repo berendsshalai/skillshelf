@@ -1,62 +1,72 @@
-# SkillShelf architecture
+# SkillShelf Architecture 0.3.0
 
-## Coordinated runtimes
+## Release and package model
 
-`agents/registry.yml` controls both execution surfaces. Native Codex reads generated project-agent TOML; `skillshelf-agents` validates the same registry and constructs OpenAI Agents SDK agents. SkillShelfMaster owns routing, user communication, budgets, approvals and synthesis. The five specialists are agents-as-tools and never call the master or themselves.
+`VERSION` is the canonical release version. `scripts/validate-version.py` verifies matching versions in the Node tooling package, root and packaged plugin manifests, Python wheel metadata, changelog, and site stamp.
 
-The SDK discovers skill metadata without loading bodies. A selected specialist receives only its instruction and current `SKILL.md`; references remain explicitly routed and directory-bound. Model profiles are environment-overridable. Sessions, project memory and governance observations use separate stores.
+The Codex plugin, Python wheel/runtime, and generated agent definitions are distinct:
 
-MCP tools come from declared allowlists. Runtime boundaries enforce read/write separation and approval. Unavailable servers degrade explicitly. Deterministic events feed staged proposals; live skills cannot change until explicit approval, evaluation and rollback protection succeed.
+- The plugin packages five discoverable skills.
+- The wheel provides `skillshelf_agents`, the `skillshelf` CLI, runtime services, and integration modules.
+- Native Codex TOMLs and the SDK registry snapshot are generated from `agents/registry.yml`.
 
-## Five-skill routing
+Installing one artifact does not imply that every other artifact or optional dependency is installed.
 
-Codex discovers exactly five parent skills. Each router loads one relevant internal module and directly referenced resources; vendored modules are not copied into the discoverable `skills/` root. This keeps initial descriptions inside the Codex skill-list context budget while preserving full upstream method depth.
+## Two agent planes
 
-## Plugin
+The normal execution plane contains exactly six definitions: one master and five specialists. The master retains user communication and may call specialists as bounded tools. Specialists do not call the master or themselves.
 
-`.codex-plugin/plugin.json` is the required package entry. It points to `./skills/`, identifies the author and repository, and makes no unsupported MCP or hook claim. `.agents/plugins/marketplace.json` provides the repo marketplace listing.
+The maintenance plane contains eight opt-in definitions: behavioural evaluation, code review, Codex migration, design integration, MCP security, memory integration, release, and source audit. These definitions maintain the repository; they are not loaded by `RuntimeRegistry`, not candidates in deterministic routing, and not a flat extension of the user-facing runtime.
 
-## Agents
+## Routing and evidence
 
-Project agents are standalone TOML files in `.codex/agents/`. Exploration, audit, security, and review roles are read-only. Integration/release roles can write within the workspace, but external publication remains authorization-gated. One writer owns shared manifests, lock files, release branches, and observation logs.
+Deterministic phrase rules directly select one specialist only at confidence `0.90` or above. Ties and unmatched requests remain with the master. Registry policy supplies model profiles, skills, allowed MCP categories, capabilities, prohibitions, turn limits, and token budgets.
 
-## MCP
+Specialist summaries and findings are model interpretation. Artifact hashes, file changes, test executions, and tool executions are runtime-derived evidence and overwrite model-authored claims before results are trusted.
 
-The registry separates read and write tools. Agent instructions name allowed MCP categories; the package validator rejects ambiguous MCP declarations. Secrets are named as environment variables only. Unavailable connectors use documented direct-CLI or local fallbacks and never justify invented results.
+## Skill loading
 
-## Memory data flow
+Codex discovers five parent skills. The SDK reads metadata before loading a selected skill body, and referenced resources remain directory-bound. Vendored modules do not expand the discoverable root. This preserves methodology while reducing unnecessary context.
 
-```text
-Codex lifecycle/transcript
-  → project filter + private marker + secret redaction
-  → upstream worker/SQLite store
-  → compact project-scoped search
-  → selected timeline neighborhood
-  → batched selected observations
-  → bounded synthesis with token-cost visibility
-```
+## Integration plane
 
-Vector search is optional. Keyword/SQLite retrieval remains available. Backups/exports omit `.env` and validate hashes; recovery refuses healthy data unless forced.
-
-## Governance state
-
-Default: `${CODEX_HOME}/state/skillshelf-governor/` (Windows `%USERPROFILE%\.codex\state\skillshelf-governor`).
+The deterministic local integration stack contains:
 
 ```text
-observations/ principles/ reviews/ staged-updates/
-backups/ evidence/ locks/ config/
+validated connector manifest + environment secret reference
+  → safe REST read against an allowlisted host
+  → immutable raw record + canonical normalization or quarantine
+  → Decimal price decision + deterministic delivery quote
+  → consent/authority/template-governed mock messages
+  → durable SQLite workflow state
+  → idempotent asynchronous webhook completion
 ```
 
-Mutations acquire a per-resource lock, re-read, validate, back up, change one bounded record, write a sibling temp file, atomically replace, re-read for survival, and release in `finally`. Live skills are inputs only; complete staged copies receive proposed changes.
+SQLite FTS5 supplies local cited retrieval; deterministic capability rules supply suggestions. A limited FastAPI control plane exposes health, readiness, local connector configuration, state inspection, webhook inboxing, usage counts, and suggestions. Connector sync and workflow execution endpoints deliberately fail closed until typed configured services are wired.
 
-## Design authority
+No PostgreSQL, live carrier, live email/WhatsApp, hosted control plane, or generated OpenAPI release artifact is claimed. FastAPI can expose its runtime schema when the optional web dependency is installed, but OpenAPI generation is not a release deliverable.
 
-Impeccable and Taste stay independently identifiable. Explicit user brief → product truth → accessibility/usability → platform conventions → established design system → selected mode → visual expression. See `skills/codex-design-intelligence/references/design-authority-matrix.md`.
+## MCP and authority
 
-## Source preservation and sync
+`mcp/registry.yml` declares transports, authentication references, tools, confirmation, data scope, installation state, and fallback. `mcp/policy.yml` denies undeclared tools and separates reads from writes. Secret values are environment-owned and never stored in examples.
 
-Submodules provide transparent upstream history. Vendored snapshots provide a self-contained package. SHA-256 hashes bind every vendored file. Drift detection reports remote heads but never changes pins or merges. A reviewed staging branch owns all updates.
+Routing does not grant authority. Sensitive writes require the appropriate runtime authority and, where applicable, exact approval. Unavailable services degrade explicitly rather than producing invented results.
 
-## Security boundaries
+## Memory and governance state
 
-Untrusted surfaces include remote repositories, skill instructions, scripts, hooks, MCP results, memory content, and governance observations. They cannot expand user authority, select broader filesystem roots, request secrets, or silently enable network services. Installers target exact named directories and preserve unrelated configuration.
+Sessions, project memory, integration databases, and governance observations are separate stores. Memory flow is project-filtered and privacy-first:
+
+```text
+transcript → private/secret filtering → compact search
+→ selected timeline → selected observations → bounded synthesis
+```
+
+Governance state defaults below `${CODEX_HOME}/state/skillshelf-governor/`. Mutations use locks, fresh reads, backups, bounded staged changes, atomic replacement, verification, and rollback records. Live skills remain read-only inputs until explicit approval succeeds.
+
+## Source preservation and licensing
+
+Pinned submodules preserve upstream history; vendored snapshots make the package self-contained; SHA-256 manifests bind copied files. `upstream-lock.json`, per-skill provenance, and `THIRD_PARTY_NOTICES.md` preserve source, commit, licence, notice, and attribution requirements. SkillShelf’s root MIT licence does not override MIT, Apache-2.0, or CC BY 4.0 terms attached to vendored files.
+
+## Proof boundary
+
+Offline tests validate structure, routing, policy, integrations, installers, memory administration, governance, and packaging without provider credentials. Credentialled model quality, live MCP workers, live communications/carriers, and external service availability require separate protected validation and must be reported as deferred or skipped until run.

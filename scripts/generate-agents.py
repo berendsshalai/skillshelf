@@ -11,6 +11,9 @@ import yaml
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REGISTRY = ROOT / "agents" / "registry.yml"
 GENERATED = ROOT / "agents" / "generated"
+DISCOVERY = ROOT / ".codex" / "agents"
+MAINTENANCE_DEFINITIONS = ROOT / "agents" / "maintenance" / "definitions"
+PROFILES = ("runtime", "maintenance", "all")
 
 
 def toml_string(value: str) -> str:
@@ -48,7 +51,7 @@ def render(entry: dict, *, master: bool = False) -> str:
     )
 
 
-def outputs() -> dict[pathlib.Path, str]:
+def runtime_outputs(*, include_discovery: bool = True) -> dict[pathlib.Path, str]:
     data = yaml.safe_load(REGISTRY.read_text(encoding="utf-8"))
     result: dict[pathlib.Path, str] = {}
     entries = [(data["master"], True), *((item, False) for item in data["agents"])]
@@ -56,27 +59,81 @@ def outputs() -> dict[pathlib.Path, str]:
         filename = f"{item['id']}.toml"
         content = render(item, master=is_master)
         result[GENERATED / "codex" / filename] = content
-        result[ROOT / ".codex" / "agents" / filename] = content
+        if include_discovery:
+            result[DISCOVERY / filename] = content
     result[GENERATED / "sdk" / "registry.json"] = json.dumps(data, indent=2) + "\n"
     return result
+
+
+def maintenance_outputs(*, include_discovery: bool = True) -> dict[pathlib.Path, str]:
+    result: dict[pathlib.Path, str] = {}
+    for source in sorted(MAINTENANCE_DEFINITIONS.glob("*.toml")):
+        content = source.read_text(encoding="utf-8")
+        result[GENERATED / "maintenance" / source.name] = content
+        if include_discovery:
+            result[DISCOVERY / source.name] = content
+    if len(result) // (2 if include_discovery else 1) != 8:
+        raise ValueError("maintenance profile must contain exactly eight definitions")
+    return result
+
+
+def outputs(profile: str) -> dict[pathlib.Path, str]:
+    if profile == "runtime":
+        return runtime_outputs()
+    if profile == "maintenance":
+        return maintenance_outputs()
+    return {**runtime_outputs(), **maintenance_outputs()}
+
+
+def expected_discovery_names(profile: str) -> set[str]:
+    names: set[str] = set()
+    if profile in {"runtime", "all"}:
+        names.update(path.name for path in runtime_outputs(include_discovery=False) if path.suffix == ".toml")
+    if profile in {"maintenance", "all"}:
+        names.update(path.name for path in maintenance_outputs(include_discovery=False))
+    return names
+
+
+def remove_stale_discovery(profile: str) -> None:
+    DISCOVERY.mkdir(parents=True, exist_ok=True)
+    expected = expected_discovery_names(profile)
+    managed = (
+        expected_discovery_names("runtime")
+        | expected_discovery_names("maintenance")
+    )
+    for path in DISCOVERY.glob("*.toml"):
+        if path.name in managed and path.name not in expected:
+            path.unlink()
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--profile", choices=PROFILES, default="runtime")
     args = parser.parse_args()
     drift = []
-    for path, content in outputs().items():
+    selected = outputs(args.profile)
+    for path, content in selected.items():
         if args.check:
             if not path.is_file() or path.read_text(encoding="utf-8") != content:
                 drift.append(path.relative_to(ROOT).as_posix())
         else:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(content, encoding="utf-8", newline="\n")
+    expected = expected_discovery_names(args.profile)
+    actual = {path.name for path in DISCOVERY.glob("*.toml")}
+    managed = expected_discovery_names("runtime") | expected_discovery_names("maintenance")
+    unexpected = sorted((actual & managed) - expected)
+    if args.check and unexpected:
+        drift.extend(f".codex/agents/{name} (unexpected for {args.profile})" for name in unexpected)
+    elif not args.check:
+        remove_stale_discovery(args.profile)
     if drift:
         print("generated agent drift: " + ", ".join(drift), file=sys.stderr)
         return 1
-    print("agent definitions valid" if args.check else "generated 6 Codex agents and SDK registry")
+    count = len(expected)
+    action = "validated" if args.check else "generated"
+    print(f"{action} {count} {args.profile} agent definitions")
     return 0
 
 

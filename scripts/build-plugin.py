@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import json, pathlib, subprocess, sys, zipfile
+import json
+import pathlib
+import subprocess
+import sys
+import zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 subprocess.run([sys.executable, str(ROOT / "scripts/sync-plugin-tree.py")], check=True)

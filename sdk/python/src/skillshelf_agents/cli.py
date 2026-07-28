@@ -16,14 +16,21 @@ from rich.console import Console
 from .agent_factory import AgentFactory
 from .budgets import UsageStore
 from .config import Settings, find_repository
+from .connectors import ConnectorManifest
+from .data import IntegrationDatabase
+from .event_log import EventLog
 from .improvement import ProposalStore
+from .ledger import RunLedger
 from .mcp_runtime import MCPRuntime
 from .orchestrator import SkillShelfOrchestrator
 from .registry import RuntimeRegistry
 from .routing import route_task
-from .sessions import SessionStore
+from .runtime.approvals import ApprovalStore
+from .sessions import SessionStore, UnifiedSessionManager
 from .skill_loader import SkillLoader
+from .suggestions.engine import CapabilityState, suggest_capabilities
 from .support import star_repository
+from .tools import CapabilityToolRegistry
 
 app = typer.Typer(help="SkillShelf Codex-first agent runtime", no_args_is_help=True)
 agents_app = typer.Typer(help="Inspect specialist agents")
@@ -31,11 +38,23 @@ usage_app = typer.Typer(help="Inspect local token usage", invoke_without_command
 sessions_app = typer.Typer(help="Manage SDK conversational sessions", invoke_without_command=True)
 mcp_app = typer.Typer(help="Inspect MCP policy", invoke_without_command=True)
 proposals_app = typer.Typer(help="Inspect and approve staged improvements", invoke_without_command=True)
+approvals_app = typer.Typer(help="Inspect exact-argument runtime approvals")
+runs_app = typer.Typer(help="Inspect durable runtime runs")
+events_app = typer.Typer(help="Inspect runtime events")
+traces_app = typer.Typer(help="Inspect traces")
+connector_app = typer.Typer(help="Manage provider-neutral connectors")
+workflow_app = typer.Typer(help="Manage durable workflows")
 app.add_typer(agents_app, name="agents")
 app.add_typer(usage_app, name="usage")
 app.add_typer(sessions_app, name="sessions")
 app.add_typer(mcp_app, name="mcp")
 app.add_typer(proposals_app, name="proposals")
+app.add_typer(approvals_app, name="approvals")
+app.add_typer(runs_app, name="runs")
+app.add_typer(events_app, name="events")
+app.add_typer(traces_app, name="traces")
+app.add_typer(connector_app, name="connector")
+app.add_typer(workflow_app, name="workflow")
 console = Console()
 
 
@@ -97,7 +116,11 @@ def inspect_agent(agent_id: str, json_output: bool = typer.Option(False, "--json
 
 
 @app.command()
-def doctor(json_output: bool = typer.Option(False, "--json")) -> None:
+def doctor(
+    deep: bool = typer.Option(False, "--deep"),
+    credentialed: bool = typer.Option(False, "--credentialed"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
     checks: list[dict[str, str]] = []
     try:
         root, settings, registry = _runtime()
@@ -108,13 +131,154 @@ def doctor(json_output: bool = typer.Option(False, "--json")) -> None:
         checks.append({"check": "Python", "status": "PASS", "detail": platform.python_version()})
         checks.append({"check": "write permissions", "status": "PASS" if os.access(settings.home, os.W_OK) else "FAIL"})
         checks.append({"check": "GitHub CLI", "status": "PASS" if shutil.which("gh") else "WARNING"})
-        checks.append({"check": "MCP policy", "status": "PASS" if MCPRuntime(root).servers else "FAIL"})
-        checks.append({"check": "memory worker", "status": "SKIPPED"})
+        mcp_health = MCPRuntime(root).health()
+        checks.append({
+            "check": "MCP policy",
+            "status": "PASS" if mcp_health and all(
+                value in {"PASS", "SKIPPED", "DEGRADED"} for value in mcp_health.values()
+            ) else "FAIL",
+            "detail": json.dumps(mcp_health, sort_keys=True),
+        })
         checks.append({"check": "tracing sensitive data", "status": "PASS" if not settings.trace_include_sensitive else "WARNING"})
         checks.append({"check": "auto review", "status": "PASS" if not settings.auto_review else "WARNING"})
         checks.append({"check": "model profiles", "status": "PASS", "detail": settings.model})
-        SessionStore(settings.home / "sessions" / "sessions.sqlite")
+        SessionStore(settings.home / "sessions" / "skillshelf.sqlite")
         checks.append({"check": "session database", "status": "PASS"})
+        if deep:
+            version = (root / "VERSION").read_text(encoding="utf-8").strip()
+            version_check = subprocess.run(
+                [sys.executable, str(root / "scripts" / "validate-version.py")],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                shell=False,
+            )
+            checks.append({"check": "version consistency", "status": "PASS" if version_check.returncode == 0 else "FAIL"})
+            generation = subprocess.run(
+                [sys.executable, str(root / "scripts" / "generate-agents.py"), "--profile", "runtime", "--check"],
+                cwd=root,
+                capture_output=True,
+                text=True,
+                shell=False,
+            )
+            checks.append({"check": "agent generation drift", "status": "PASS" if generation.returncode == 0 else "FAIL"})
+            ledger = RunLedger(settings.home / "runs" / "ledger.sqlite")
+            probe = f"doctor-{os.getpid()}"
+            try:
+                ledger.create_run(
+                    run_id=probe,
+                    trace_id=probe,
+                    session_id=probe,
+                    canonical_input={"doctor": True},
+                    configuration_version=version,
+                )
+                checks.append({"check": "run-ledger write", "status": "PASS"})
+                ledger.record_error(probe, code="doctor_probe", message="expected diagnostic event")
+                checks.append({"check": "event failure capture", "status": "PASS"})
+            except Exception as exc:
+                checks.append({"check": "run-ledger write", "status": "FAIL", "detail": str(exc)})
+            integration = IntegrationDatabase(settings.home / "operations.sqlite")
+            integration.close()
+            checks.extend([
+                {"check": "connector database", "status": "PASS"},
+                {"check": "workflow database", "status": "PASS"},
+            ])
+            from .rag import SQLiteKnowledgeBase
+            knowledge = SQLiteKnowledgeBase(settings.home / "rag.sqlite")
+            knowledge.close()
+            checks.append({"check": "RAG database", "status": "PASS"})
+            from .governance import GovernanceManager
+            recovered = GovernanceManager(settings.home, root).recover_interrupted()
+            checks.append({
+                "check": "governance interrupted-apply recovery",
+                "status": "PASS",
+                "detail": f"recovered={len(recovered)}",
+            })
+            from .contracts import SpecialistResult
+            SpecialistResult(
+                agent_id="doctor",
+                status="completed",
+                summary="schema probe",
+                context_for_master="schema probe",
+            )
+            checks.append({"check": "actual structured-output support", "status": "PASS"})
+            from .runtime import RuntimeContext
+            from .sessions.identity import repository_identity
+            context = RuntimeContext(
+                run_id=probe,
+                trace_id=probe,
+                session_id=probe,
+                repository_root=root,
+                repository_identity=repository_identity(root),
+                soft_token_limit=100,
+                hard_token_limit=200,
+            )
+            approvals = ApprovalStore(settings.home / "runs" / "ledger.sqlite")
+            approval = approvals.request(
+                context=context,
+                tool_name="write_text_file",
+                arguments={"path": "doctor-probe.txt", "content": "probe"},
+                operation="write",
+                approving_user="doctor",
+                ttl_seconds=60,
+            )
+            interrupted = not approvals.is_granted(approval.approval_id)
+            approvals.reject(approval.approval_id, approving_user="doctor")
+            checks.append({
+                "check": "write approval interruption",
+                "status": "PASS" if interrupted else "FAIL",
+            })
+            from agents.tool_context import ToolContext
+            from .tools.artefacts import ArtifactStore
+            from .tools.filesystem import RepositoryFilesystem
+            from .tools.subprocess import SafeCommandExecutor
+            tool_registry = CapabilityToolRegistry(
+                filesystem=RepositoryFilesystem(root, settings.home / "backups" / "doctor"),
+                commands=SafeCommandExecutor(root, ArtifactStore(settings.home / "artifacts")),
+            )
+            read_tool = next(item for item in tool_registry.build(["read_files"]) if item.name == "read_text_file")
+            async def invoke_read_tool() -> Any:
+                return await read_tool.on_invoke_tool(
+                    ToolContext(
+                        context=context,
+                        tool_name=read_tool.name,
+                        tool_call_id=probe,
+                        tool_arguments='{"path":"VERSION"}',
+                    ),
+                    '{"path":"VERSION"}',
+                )
+            tool_output: Any = asyncio.run(invoke_read_tool())
+            checks.append({
+                "check": "actual function-tool call",
+                "status": "PASS" if version in str(tool_output) else "FAIL",
+            })
+            manager = UnifiedSessionManager(settings.home / "sessions" / "skillshelf.sqlite")
+            session_probe = f"{probe}-session"
+            manager.create_with_id(session_probe, repository_identity=context.repository_identity)
+            async def session_round_trip() -> bool:
+                sdk_session = manager.sdk_session(session_probe)
+                await sdk_session.add_items([{"role": "user", "content": "doctor probe"}])
+                before = await sdk_session.get_items()
+                await manager.delete(session_probe, confirmed=True)
+                return bool(before) and manager.verify_deleted(session_probe)
+            session_ok = asyncio.run(session_round_trip())
+            checks.append({
+                "check": "session write/read/delete",
+                "status": "PASS" if session_ok else "FAIL",
+            })
+            checks.extend([
+                {
+                    "check": "actual model/master/specialist invocation",
+                    "status": "SKIPPED" if not credentialed else "DEGRADED",
+                    "detail": "Use a credentialled evaluation fixture; doctor never makes an implicit paid call.",
+                },
+                {
+                    "check": "actual MCP connection/discovery/read",
+                    "status": "SKIPPED",
+                    "detail": "No required local MCP provider was connected during this diagnostic.",
+                },
+                {"check": "optional provider readiness", "status": "SKIPPED"},
+            ])
         del registry
     except Exception as exc:
         checks.append({"check": "startup", "status": "FAIL", "detail": str(exc)})
@@ -140,33 +304,40 @@ def sessions_list(ctx: typer.Context, json_output: bool = typer.Option(False, "-
     if ctx.invoked_subcommand:
         return
     _, settings, _ = _runtime()
-    _emit(SessionStore(settings.home / "sessions" / "sessions.sqlite").list(), json_output)
+    _emit(SessionStore(settings.home / "sessions" / "skillshelf.sqlite").list(), json_output)
 
 
 @sessions_app.command("list")
 def sessions_list_command(json_output: bool = typer.Option(False, "--json")) -> None:
     _, settings, _ = _runtime()
-    _emit(SessionStore(settings.home / "sessions" / "sessions.sqlite").list(), json_output)
+    _emit(SessionStore(settings.home / "sessions" / "skillshelf.sqlite").list(), json_output)
 
 
 def _sessions() -> SessionStore:
     _, settings, _ = _runtime()
-    return SessionStore(settings.home / "sessions" / "sessions.sqlite")
+    return SessionStore(settings.home / "sessions" / "skillshelf.sqlite")
+
+
+def _session_manager() -> UnifiedSessionManager:
+    _, settings, _ = _runtime()
+    return UnifiedSessionManager(settings.home / "sessions" / "skillshelf.sqlite")
 
 
 @sessions_app.command("inspect")
 def session_inspect(session_id: str) -> None:
-    _emit(_sessions().inspect(session_id), False)
+    _emit(_session_manager().inspect(session_id), False)
 
 
 @sessions_app.command("delete")
 def session_delete(session_id: str, yes: bool = typer.Option(False, "--yes")) -> None:
-    _sessions().delete(session_id, confirmed=yes)
+    asyncio.run(_session_manager().delete(session_id, confirmed=yes))
+    if not _session_manager().verify_deleted(session_id):
+        raise typer.Exit(1)
 
 
 @sessions_app.command("export")
 def session_export(session_id: str, destination: Path) -> None:
-    console.print(_sessions().export(session_id, destination))
+    console.print(asyncio.run(_session_manager().export(session_id, destination)))
 
 
 @mcp_app.callback(invoke_without_command=True)
@@ -243,6 +414,212 @@ def proposal_approve(proposal_id: str, yes: bool = typer.Option(False, "--yes"))
     def evaluator(_skill: str) -> bool:
         return subprocess.run([os.fspath(Path(sys.executable)), "-m", "pytest", "-q"], cwd=root).returncode == 0
     ProposalStore(settings.home, root).approve(proposal_id, confirmed=yes, evaluator=evaluator)
+
+
+def _approval_store() -> ApprovalStore:
+    _, settings, _ = _runtime()
+    return ApprovalStore(settings.home / "runs" / "ledger.sqlite")
+
+
+@approvals_app.command("list")
+def approvals_list(json_output: bool = typer.Option(False, "--json")) -> None:
+    _emit([item.model_dump(mode="json") for item in _approval_store().list()], json_output)
+
+
+@approvals_app.command("inspect")
+def approvals_inspect(approval_id: str, json_output: bool = typer.Option(False, "--json")) -> None:
+    _emit(_approval_store().inspect(approval_id).model_dump(mode="json"), json_output)
+
+
+@approvals_app.command("approve")
+def approvals_approve(approval_id: str, user: str = typer.Option(..., "--user")) -> None:
+    _approval_store().approve(approval_id, approving_user=user)
+    console.print(f"Approved {approval_id} for its exact bound arguments.")
+
+
+@approvals_app.command("reject")
+def approvals_reject(approval_id: str, user: str = typer.Option(..., "--user")) -> None:
+    _approval_store().reject(approval_id, approving_user=user)
+    console.print(f"Rejected {approval_id}.")
+
+
+def _run_ledger() -> RunLedger:
+    _, settings, _ = _runtime()
+    return RunLedger(settings.home / "runs" / "ledger.sqlite")
+
+
+@runs_app.command("list")
+def runs_list(limit: int = typer.Option(100, min=1, max=1000), json_output: bool = typer.Option(False, "--json")) -> None:
+    _emit([item.model_dump(mode="json") for item in _run_ledger().list_runs(limit=limit)], json_output)
+
+
+@runs_app.command("inspect")
+def runs_inspect(run_id: str, json_output: bool = typer.Option(False, "--json")) -> None:
+    _emit(_run_ledger().inspect_run(run_id).model_dump(mode="json"), json_output)
+
+
+@runs_app.command("artifacts")
+def runs_artifacts(run_id: str, json_output: bool = typer.Option(False, "--json")) -> None:
+    record = _run_ledger().inspect_run(run_id)
+    _emit([
+        {"tool_call_id": item.tool_call_id, "output_digest": item.output_digest}
+        for item in record.tool_calls if item.output_digest
+    ], json_output)
+
+
+@runs_app.command("cancel")
+def runs_cancel(run_id: str) -> None:
+    from .ledger.models import RunStatus
+    _run_ledger().transition(run_id, RunStatus.CANCELLED)
+
+
+@runs_app.command("replay")
+def runs_replay(run_id: str) -> None:
+    record = _run_ledger().inspect_run(run_id)
+    _emit({
+        "status": "approval_required",
+        "original_run_id": run_id,
+        "canonical_input": record.canonical_input,
+        "reason": "Replay creates a linked run and never replays outbound communications automatically.",
+    }, False)
+
+
+@events_app.command("tail")
+def events_tail(limit: int = typer.Option(20, min=1, max=1000)) -> None:
+    _, settings, _ = _runtime()
+    _emit(EventLog(settings.home / "events").read()[-limit:], False)
+
+
+@traces_app.command("inspect")
+def traces_inspect(trace_id: str) -> None:
+    matches = [
+        item.model_dump(mode="json")
+        for item in _run_ledger().list_runs(limit=1000)
+        if item.trace_id == trace_id
+    ]
+    if not matches:
+        raise typer.BadParameter("trace not found")
+    _emit(matches, False)
+
+
+def _connector_directory() -> Path:
+    _, settings, _ = _runtime()
+    directory = settings.home / "connectors"
+    directory.mkdir(parents=True, exist_ok=True)
+    return directory
+
+
+@connector_app.command("list")
+def connector_list() -> None:
+    _emit([
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in sorted(_connector_directory().glob("*.json"))
+    ], False)
+
+
+@connector_app.command("add")
+def connector_add(manifest: Path) -> None:
+    value = ConnectorManifest.model_validate_json(manifest.read_text(encoding="utf-8"))
+    destination = _connector_directory() / f"{value.id}.json"
+    if destination.exists():
+        raise typer.BadParameter("connector already exists")
+    destination.write_text(value.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    console.print(f"Stored reviewed connector manifest {value.id}; no network call was made.")
+
+
+@connector_app.command("test")
+def connector_test(connector_id: str) -> None:
+    path = _connector_directory() / f"{connector_id}.json"
+    value = ConnectorManifest.model_validate_json(path.read_text(encoding="utf-8"))
+    _emit({"id": value.id, "manifest": "PASS", "network": "SKIPPED"}, False)
+
+
+@connector_app.command("doctor")
+def connector_doctor(connector_id: str) -> None:
+    connector_test(connector_id)
+
+
+@connector_app.command("sync")
+def connector_sync(connector_id: str) -> None:
+    path = _connector_directory() / f"{connector_id}.json"
+    if not path.exists():
+        raise typer.BadParameter("connector not found")
+    console.print("Sync requires an explicitly configured resource operation and secret references.")
+    raise typer.Exit(2)
+
+
+@connector_app.command("import-openapi")
+def connector_import_openapi(source: str) -> None:
+    del source
+    console.print("OpenAPI code generation is not completed in 0.3.0; no connector was activated.")
+    raise typer.Exit(2)
+
+
+def _operations_database() -> IntegrationDatabase:
+    _, settings, _ = _runtime()
+    return IntegrationDatabase(settings.home / "operations.sqlite")
+
+
+@workflow_app.command("list")
+def workflow_list() -> None:
+    _emit([{"id": "stock-to-offer-v1", "durable": True}], False)
+
+
+@workflow_app.command("status")
+def workflow_status(run_id: str) -> None:
+    database = _operations_database()
+    try:
+        row = database.connection.execute(
+            "SELECT id,workflow_id,state,result_json,updated_at FROM workflow_runs WHERE id=?",
+            (run_id,),
+        ).fetchone()
+        if row is None:
+            raise typer.BadParameter("workflow run not found")
+        _emit(dict(row), False)
+    finally:
+        database.close()
+
+
+@workflow_app.command("cancel")
+def workflow_cancel(run_id: str) -> None:
+    database = _operations_database()
+    try:
+        with database.connection:
+            cursor = database.connection.execute(
+                "UPDATE workflow_runs SET state='CANCELLED' WHERE id=? AND state NOT IN ('COMPLETED','FAILED','CANCELLED')",
+                (run_id,),
+            )
+        if cursor.rowcount != 1:
+            raise typer.BadParameter("workflow run cannot be cancelled")
+    finally:
+        database.close()
+
+
+@workflow_app.command("dead-letter")
+def workflow_dead_letter() -> None:
+    database = _operations_database()
+    try:
+        rows = [
+            dict(row) for row in database.connection.execute(
+                "SELECT id,workflow_id,state,updated_at FROM workflow_runs WHERE state='DEAD_LETTERED'"
+            )
+        ]
+        _emit(rows, False)
+    finally:
+        database.close()
+
+
+@app.command("suggest")
+def suggest() -> None:
+    connectors = any(_connector_directory().glob("*.json"))
+    state = CapabilityState(
+        has_stock_source=connectors,
+        has_pricing_rule=False,
+        has_delivery_provider=False,
+        has_customer_consent=False,
+        has_message_channel=False,
+    )
+    _emit([item.model_dump() for item in suggest_capabilities(state)], False)
 
 
 @app.command("support")

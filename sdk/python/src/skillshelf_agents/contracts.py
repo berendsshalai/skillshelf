@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class Severity(StrEnum):
@@ -26,6 +27,32 @@ class FileChange(BaseModel):
     summary: str
 
 
+class TestExecution(BaseModel):
+    command: str
+    status: Literal["passed", "failed", "skipped"]
+    exit_code: int | None = None
+    artifact_id: str | None = None
+
+
+class ArtifactReference(BaseModel):
+    artifact_id: str
+    path: str
+    media_type: str
+    sha256: str
+    size_bytes: int = Field(ge=0)
+
+
+class ToolExecutionEvidence(BaseModel):
+    tool_call_id: str
+    tool_name: str
+    started_at: datetime
+    completed_at: datetime
+    status: Literal["completed", "failed", "denied", "timed_out"]
+    input_digest: str
+    output_digest: str | None = None
+    error_code: str | None = None
+
+
 class UsageSummary(BaseModel):
     requests: int = 0
     input_tokens: int = 0
@@ -38,25 +65,53 @@ class UsageSummary(BaseModel):
 
 class SpecialistResult(BaseModel):
     agent_id: str
-    status: str
+    status: Literal["completed", "partially_completed", "blocked", "failed"]
     summary: str
     findings: list[str] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
+    artifacts: list[ArtifactReference] = Field(default_factory=list)
     files_changed: list[FileChange] = Field(default_factory=list)
-    tests_run: list[str] = Field(default_factory=list)
+    tests_run: list[TestExecution] = Field(default_factory=list)
+    tool_executions: list[ToolExecutionEvidence] = Field(default_factory=list)
     risks: list[str] = Field(default_factory=list)
     next_action: str | None = None
-    context_for_master: str = Field(description="Compact context for the master; large artifacts use paths.")
+    context_for_master: str = Field(
+        default="",
+        max_length=6000,
+        description="Compact context for the master; large artifacts use paths.",
+    )
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalise_legacy_status(cls, value: object) -> object:
+        return "completed" if value == "complete" else value
+
+    @field_validator("tests_run", mode="before")
+    @classmethod
+    def normalise_legacy_tests(cls, value: object) -> object:
+        if isinstance(value, list):
+            return [
+                {"command": item, "status": "passed"} if isinstance(item, str) else item
+                for item in value
+            ]
+        return value
 
 
 class GovernanceProposal(BaseModel):
     proposal_id: str
     target_skill: str
     evidence_ids: list[str]
+    source_digest: str = ""
+    staged_digest: str = ""
     problem: str
     proposed_change: str
     expected_benefit: str
     regression_risks: list[str] = Field(default_factory=list)
+    risk_analysis: list[str] = Field(default_factory=list)
+    creator: str = "unknown"
+    evaluation_plan: list[str] = Field(default_factory=list)
+    created_at: datetime | None = None
+    status: str = "staged"
     staged_path: str | None = None
     approval_required: bool = True
 
@@ -72,7 +127,7 @@ class OrchestratorResult(BaseModel):
     specialists_used: list[str] = Field(default_factory=list)
     evidence: list[Evidence] = Field(default_factory=list)
     files_changed: list[FileChange] = Field(default_factory=list)
-    tests_run: list[str] = Field(default_factory=list)
+    tests_run: list[TestExecution] = Field(default_factory=list)
     unresolved_risks: list[str] = Field(default_factory=list)
     usage: UsageSummary = Field(default_factory=UsageSummary)
 
