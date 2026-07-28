@@ -1,0 +1,17 @@
+skill: codex-skill-governor
+must:
+  - record evidence-backed reusable methodology
+  - separate governance observations from project memory
+  - use stable state outside ephemeral worktrees
+  - serialize shared mutations with owned locks
+  - backup before bounded mutation
+  - atomically replace shared files
+  - verify structure and record survival
+  - stage complete skill packages
+  - require explicit authority before installation
+must_not:
+  - modify live skills automatically
+  - install staged skills
+  - record secrets or ordinary project history
+  - expand MCP permissions from observations
+  - discard upstream attribution

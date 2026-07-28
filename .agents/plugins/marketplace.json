@@ -1,0 +1,20 @@
+{
+  "name": "skillshelf",
+  "interface": {
+    "displayName": "SkillShelf"
+  },
+  "plugins": [
+    {
+      "name": "skillshelf",
+      "source": {
+        "source": "local",
+        "path": "./plugins/skillshelf"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

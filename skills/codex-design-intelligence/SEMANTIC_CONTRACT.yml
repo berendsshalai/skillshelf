@@ -1,0 +1,13 @@
+name: codex-design-intelligence
+engines:
+  impeccable:
+    owns: [product-context, surface-mode, ux-structure, information-architecture, accessibility, responsive-design, design-system, audit, hardening, performance, internationalization]
+  taste:
+    owns: [visual-character, layout-variance, typography-expression, motion-intensity, visual-density, image-first-direction, premium-presentation, anti-generic-audit]
+required_modes: [Persuade, Operate, Read, Experience]
+required_dials: [DESIGN_VARIANCE, MOTION_INTENSITY, VISUAL_DENSITY]
+invariants:
+  - explicit brief and product truth precede style
+  - accessibility wins conflicts
+  - engines stay separately loadable
+  - final review is bounded and consolidated

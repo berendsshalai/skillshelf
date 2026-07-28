@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://berendsshalai.github.io/skillshelf/sitemap.xml

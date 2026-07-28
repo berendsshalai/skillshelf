@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Skill Governor"
+  short_description: "Safely observe and stage skill improvements"
+  default_prompt: "Use $codex-skill-governor to record evidence and stage a reviewed skill improvement."

@@ -1,0 +1,25 @@
+name: superpowers-codex
+required_modules:
+  - brainstorming
+  - writing-plans
+  - executing-plans
+  - subagent-driven-development
+  - dispatching-parallel-agents
+  - test-driven-development
+  - systematic-debugging
+  - verification-before-completion
+  - requesting-code-review
+  - receiving-code-review
+  - using-git-worktrees
+  - finishing-a-development-branch
+  - writing-skills
+invariants:
+  - evidence precedes completion claims
+  - root-cause analysis precedes bug fixes
+  - planning precedes substantial implementation
+  - upstream modules remain intact and separately loadable
+codex_changes:
+  - native plans and bounded agents
+  - managed-worktree detection
+  - no Claude bootstrap hook or command names
+  - sequential fallback

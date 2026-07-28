@@ -1,0 +1,13 @@
+skill: codex-design-intelligence
+upstreams:
+  - repository: https://github.com/pbakaus/impeccable
+    commit: 1cf7d7ab0f1ac0bb3319fd20be389a3009f4037d
+    license: Apache-2.0
+    notice: NOTICE.md includes MIT platform-design-skills attribution
+    vendor_path: vendor/impeccable
+  - repository: https://github.com/leonxlnx/taste-skill
+    commit: e988add20dab0fa97d7a76781c48961c8184288e
+    license: MIT
+    vendor_path: vendor/taste-skill
+adaptation: Authority-based router; engines remain intact and separately identifiable
+modified_upstream_files: []

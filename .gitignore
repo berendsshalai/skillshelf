@@ -1,0 +1,14 @@
+__pycache__/
+.pytest_cache/
+node_modules/
+dist/
+_site/
+work/
+*.db
+*.db-wal
+*.db-shm
+.env
+.env.*
+!.env.example
+*.zip
+upstream-drift-report.md

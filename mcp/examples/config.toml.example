@@ -1,0 +1,7 @@
+# Public documentation server (no secret required).
+[mcp_servers.openaiDeveloperDocs]
+url = "https://developers.openai.com/mcp"
+
+# The memory MCP is installed by its audited upstream Codex installer.
+# Do not paste credentials here. Validate with:
+#   pwsh scripts/doctor-memory.ps1

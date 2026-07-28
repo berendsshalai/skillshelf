@@ -1,0 +1,67 @@
+version: 1
+servers:
+  - name: github
+    purpose: Inspect upstream repositories, issues, pull requests, and publish only when explicitly authorised.
+    required_by: [find-skills-codex, source_audit_agent, release_agent]
+    transport: connector
+    authentication: User-managed GitHub OAuth or GitHub CLI session.
+    read_tools: [repository_read, issue_read, pull_request_read]
+    write_tools: [repository_create, branch_push, pull_request_create]
+    confirmation_required: true
+    data_scope: Repositories explicitly named by the user or this project lock.
+    secret_environment_variables: [GH_TOKEN]
+    installation_status: external-connector
+    validation_command: gh auth status
+    fallback: Authenticated gh CLI for supported operations; local Git for repository inspection.
+  - name: openaiDeveloperDocs
+    purpose: Verify current Codex skills, plugins, MCP, hooks, agents, and packaging.
+    required_by: [codex_migration_agent, mcp_security_agent]
+    transport: streamable_http
+    authentication: none
+    read_tools: [search_openai_docs, fetch_openai_doc]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Public OpenAI developer documentation.
+    secret_environment_variables: []
+    installation_status: optional
+    validation_command: codex mcp get openaiDeveloperDocs
+    fallback: Official Codex manual, then official OpenAI-domain web pages.
+  - name: codex-memory
+    purpose: Progressive project-scoped memory search, timeline retrieval, and selected observation fetch.
+    required_by: [codex-memory, memory_integration_agent]
+    transport: stdio
+    authentication: local-process
+    read_tools: [search, timeline, get_observations]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Current project by default; cross-project only when explicitly requested.
+    secret_environment_variables: []
+    installation_status: optional-upstream-runtime
+    validation_command: pwsh scripts/doctor-memory.ps1
+    fallback: Project-scoped SQLite keyword search with the same progressive retrieval limits.
+  - name: filesystem
+    purpose: Read and modify files within the authorised repository or stable SkillShelf state root.
+    required_by: [all-local-agents]
+    transport: host
+    authentication: Codex sandbox and approval policy.
+    read_tools: [read_file, search_files]
+    write_tools: [apply_patch]
+    confirmation_required: false
+    data_scope: Repository and explicitly selected SkillShelf state directories.
+    secret_environment_variables: []
+    installation_status: host-provided
+    validation_command: python scripts/validate-package.py
+    fallback: Native shell reads and apply_patch within the same scope.
+  - name: browser
+    purpose: Verify the local or deployed documentation site when browser QA is requested.
+    required_by: [design_integration_agent, release_agent]
+    transport: connector
+    authentication: host-session
+    read_tools: [open, inspect, screenshot]
+    write_tools: [click, type]
+    confirmation_required: false
+    data_scope: SkillShelf local preview and deployed Pages site.
+    secret_environment_variables: []
+    installation_status: optional-host-connector
+    validation_command: python scripts/build-site.py
+    fallback: Static HTML metadata, link, and overflow-oriented tests.

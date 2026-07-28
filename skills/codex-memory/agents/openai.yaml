@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codex Memory"
+  short_description: "Recall project history with progressive retrieval."
+  brand_color: "#174A3B"
+  default_prompt: "Use $codex-memory to retrieve only the project memory needed for this question."
+policy:
+  allow_implicit_invocation: true

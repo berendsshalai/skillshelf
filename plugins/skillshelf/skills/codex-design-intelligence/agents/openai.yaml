@@ -1,0 +1,7 @@
+interface:
+  display_name: "Codex Design Intelligence"
+  short_description: "Product rigor plus anti-generic visual direction."
+  brand_color: "#E7542E"
+  default_prompt: "Use $codex-design-intelligence to design or audit this interface with the correct mode and authority matrix."
+policy:
+  allow_implicit_invocation: true

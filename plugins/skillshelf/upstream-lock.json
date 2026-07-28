@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-28T00:00:00+02:00",
+  "sources": [
+    {
+      "repository": "https://github.com/vercel-labs/skills",
+      "commit": "e173b8c88f2581cfdaa1b6767c6519a08155790e",
+      "branch": "main",
+      "retrieved_at": "2026-07-28",
+      "license": "MIT",
+      "source_paths": ["skills/find-skills/SKILL.md"],
+      "vendor_paths": ["vendor/find-skills"],
+      "adapted_skill": "find-skills-codex",
+      "status": "pinned"
+    },
+    {
+      "repository": "https://github.com/obra/superpowers",
+      "commit": "3dcbd5c4b48e02263fbf4a3c01e3fe4f81d584d9",
+      "branch": "main",
+      "retrieved_at": "2026-07-28",
+      "license": "MIT",
+      "source_paths": ["skills"],
+      "vendor_paths": ["vendor/superpowers"],
+      "adapted_skill": "superpowers-codex",
+      "status": "pinned"
+    },
+    {
+      "repository": "https://github.com/thedotmack/claude-mem",
+      "commit": "132b46343e60ecf4057c427736c57b08f7615dfe",
+      "branch": "main",
+      "retrieved_at": "2026-07-28",
+      "license": "Apache-2.0",
+      "source_paths": ["plugin", "src/services/integrations/CodexCliInstaller.ts", "src/services/transcripts", "src/services/context", "src/storage/sqlite"],
+      "vendor_paths": ["vendor/memory"],
+      "adapted_skill": "codex-memory",
+      "status": "pinned-runtime-evidence"
+    },
+    {
+      "repository": "https://github.com/pbakaus/impeccable",
+      "commit": "1cf7d7ab0f1ac0bb3319fd20be389a3009f4037d",
+      "branch": "main",
+      "retrieved_at": "2026-07-28",
+      "license": "Apache-2.0",
+      "source_paths": [".agents/skills/impeccable"],
+      "vendor_paths": ["vendor/impeccable"],
+      "adapted_skill": "codex-design-intelligence",
+      "status": "pinned"
+    },
+    {
+      "repository": "https://github.com/leonxlnx/taste-skill",
+      "commit": "e988add20dab0fa97d7a76781c48961c8184288e",
+      "branch": "main",
+      "retrieved_at": "2026-07-28",
+      "license": "MIT",
+      "source_paths": ["skills"],
+      "vendor_paths": ["vendor/taste-skill"],
+      "adapted_skill": "codex-design-intelligence",
+      "status": "pinned"
+    },
+    {
+      "repository": "https://github.com/rebelytics/one-skill-to-rule-them-all",
+      "commit": "281f13466cd3a73e9ebc9d210907748e1941a3dd",
+      "branch": "main",
+      "retrieved_at": "2026-07-28",
+      "license": "CC-BY-4.0",
+      "source_paths": ["SKILL.md", "references"],
+      "vendor_paths": ["vendor/skill-governor"],
+      "adapted_skill": "codex-skill-governor",
+      "status": "pinned"
+    },
+    {
+      "repository": "https://github.com/berendsshalai/berendsshalai-project-systemtoportfolio",
+      "commit": "79dc09adb926fff608ffbe474384e8ee184d997c",
+      "branch": "main",
+      "retrieved_at": "2026-07-28",
+      "license": "MIT",
+      "source_paths": ["socials/index.html", "src/data/socials.ts", "src/components/SocialIcon.tsx", "src/data/socials.test.ts"],
+      "vendor_paths": ["vendor/socials"],
+      "adapted_skill": "site/socials",
+      "status": "pinned"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Superpowers for Codex"
+  short_description: "Plan, test, debug, review, and verify."
+  brand_color: "#174A3B"
+  default_prompt: "Use $superpowers-codex to route this software task through the appropriate evidence-led workflow."
+policy:
+  allow_implicit_invocation: true

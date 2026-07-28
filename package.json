@@ -1,0 +1,17 @@
+{
+  "name": "skillshelf",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Validation and release tooling for the SkillShelf Codex plugin.",
+  "scripts": {
+    "validate": "python scripts/validate-package.py",
+    "test": "python -m pytest -q",
+    "build": "python scripts/build-site.py",
+    "build:plugin": "python scripts/build-plugin.py",
+    "check": "npm run validate && npm test && npm run build && npm run build:plugin"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "MIT"
+}

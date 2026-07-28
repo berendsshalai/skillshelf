@@ -1,0 +1,10 @@
+skill: find-skills-codex
+upstream:
+  repository: https://github.com/vercel-labs/skills
+  commit: e173b8c88f2581cfdaa1b6767c6519a08155790e
+  source_path: skills/find-skills/SKILL.md
+  license: MIT
+  copyright: Copyright 2026 Vercel, Inc.
+vendor_path: vendor/find-skills
+adaptation: Additive Codex safety and compatibility router
+modified_upstream_files: []

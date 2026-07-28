@@ -1,0 +1,27 @@
+schema_version: 1
+skill: codex-memory
+must:
+  - scope ordinary recall to the current project
+  - use search_then_filter_then_timeline_then_batch_fetch
+  - disclose degraded retrieval modes
+  - redact secrets before storage or import
+  - honor private exclusion markers
+  - exclude credentials from backup and export
+  - verify hashes before import or recovery
+  - require explicit execution for install and uninstall
+  - preserve unrelated Codex configuration
+must_not:
+  - inject the full memory database or corpus
+  - duplicate native-hook memory in AGENTS.md
+  - store credentials tokens passwords private_keys cookies or MFA values
+  - enable telemetry cloud_sync or vector services silently
+  - overwrite an existing data directory without force and a safety backup
+  - claim vector or MCP success without validation
+fallbacks:
+  vector_unavailable: SQLite keyword or FTS search
+  mcp_unavailable: worker local API after doctor validation
+  worker_unavailable: stop and report exact remediation
+evidence:
+  retrieval: searched scope filters selected IDs and timeline anchors
+  mutation: changed paths backup location and rollback command
+  health: doctor output and database/export integrity

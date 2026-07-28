@@ -1,0 +1,22 @@
+{
+  "name": "skillshelf",
+  "version": "0.1.0",
+  "description": "Five provenance-preserving, Codex-first workflows for skill discovery, software delivery, memory, design, and skill governance.",
+  "author": {
+    "name": "Sha-Lai Berends"
+  },
+  "homepage": "https://berendsshalai.github.io/skillshelf/",
+  "repository": "https://github.com/berendsshalai/skillshelf",
+  "license": "MIT",
+  "keywords": ["codex", "agent-skills", "memory", "design", "governance"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "SkillShelf",
+    "shortDescription": "A provenance-first Codex skill shelf.",
+    "longDescription": "SkillShelf packages five routed Codex workflows while preserving the licences, source commits, and internal methodology of their upstream projects.",
+    "developerName": "Sha-Lai Berends",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write", "Interactive"],
+    "defaultPrompt": "Use the appropriate SkillShelf workflow for this task and report evidence before claiming completion."
+  }
+}

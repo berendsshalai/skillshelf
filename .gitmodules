@@ -1,0 +1,18 @@
+[submodule "upstream/vercel-skills"]
+	path = upstream/vercel-skills
+	url = https://github.com/vercel-labs/skills.git
+[submodule "upstream/superpowers"]
+	path = upstream/superpowers
+	url = https://github.com/obra/superpowers.git
+[submodule "upstream/claude-mem"]
+	path = upstream/claude-mem
+	url = https://github.com/thedotmack/claude-mem.git
+[submodule "upstream/impeccable"]
+	path = upstream/impeccable
+	url = https://github.com/pbakaus/impeccable.git
+[submodule "upstream/taste-skill"]
+	path = upstream/taste-skill
+	url = https://github.com/leonxlnx/taste-skill.git
+[submodule "upstream/one-skill-to-rule-them-all"]
+	path = upstream/one-skill-to-rule-them-all
+	url = https://github.com/rebelytics/one-skill-to-rule-them-all.git

@@ -1,0 +1,30 @@
+import hashlib, json, pathlib, re
+
+ROOT = pathlib.Path(__file__).parents[1]
+
+def test_vendor_hashes():
+    manifest = json.loads((ROOT / "vendor-manifest.json").read_text())
+    assert len(manifest["files"]) >= 200
+    for rel, expected in manifest["files"].items():
+        assert hashlib.sha256((ROOT / rel).read_bytes()).hexdigest() == expected
+
+def test_no_runtime_secret_artifacts():
+    forbidden_names = {".env", "auth.json", "cookies.json"}
+    for path in ROOT.rglob("*"):
+        if ".git" in path.parts or "upstream" in path.parts:
+            continue
+        assert path.name not in forbidden_names
+        assert not path.name.endswith((".db", ".db-wal", ".db-shm"))
+
+def test_mcp_registry_has_write_confirmations():
+    value = (ROOT / "mcp/registry.yml").read_text()
+    assert "secret_environment_variables:" in value
+    github = value.split("- name: github", 1)[1].split("- name:", 1)[0]
+    assert "confirmation_required: true" in github
+
+def test_workflows_do_not_expose_pull_request_secrets():
+    for path in (ROOT / ".github/workflows").glob("*.yml"):
+        value = path.read_text()
+        assert "pull_request_target" not in value
+        if "pull_request:" in value:
+            assert "secrets." not in value

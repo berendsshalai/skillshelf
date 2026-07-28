@@ -1,0 +1,7 @@
+interface:
+  display_name: "Find Skills for Codex"
+  short_description: "Inspect and pin a skill before installation."
+  brand_color: "#E7542E"
+  default_prompt: "Use $find-skills-codex to find and verify a safe Codex skill for this task."
+policy:
+  allow_implicit_invocation: true

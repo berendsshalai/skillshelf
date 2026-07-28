@@ -1,0 +1,25 @@
+schema_version: 1
+adapted_skill: codex-memory
+upstream:
+  repository: https://github.com/thedotmack/claude-mem
+  branch: main
+  commit: 132b46343e60ecf4057c427736c57b08f7615dfe
+  version: 13.12.4
+  retrieved_at: 2026-07-28
+  license: Apache-2.0
+  notice: vendor/memory/NOTICE
+vendor_root: vendor/memory
+hash_manifest: vendor/memory/MANIFEST.sha256
+preserved_behaviors:
+  - Codex marketplace installer and Windows command handling
+  - Codex plugin, native hooks, and MCP declaration
+  - progressive search, timeline, and batched observation retrieval
+  - worker-backed SQLite storage and schema migration evidence
+  - transcript watching and native-hook context suppression
+  - private-marker validation and telemetry consent/scrubbing evidence
+adaptations:
+  - privacy-first secret redaction before storage or import
+  - credential-free backup and portable hash-verified export/import
+  - doctor, migration, recovery, and explicit install/uninstall wrappers
+  - telemetry-off and cloud-sync-off downstream policy
+modification_policy: Vendored files are exact snapshots; downstream changes live under skills/codex-memory.

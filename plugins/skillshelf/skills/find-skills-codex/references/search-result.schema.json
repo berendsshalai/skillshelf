@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "SkillShelf skill inspection",
+  "type": "object",
+  "required": ["repository", "commit", "license", "compatibility", "security", "recommendation"],
+  "properties": {
+    "repository": {"type": "string"},
+    "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "license": {"type": "string"},
+    "compatibility": {"type": "array", "items": {"type": "string"}},
+    "security": {"type": "array", "items": {"type": "string"}},
+    "recommendation": {"enum": ["accept", "adapt", "reject"]}
+  },
+  "additionalProperties": true
+}

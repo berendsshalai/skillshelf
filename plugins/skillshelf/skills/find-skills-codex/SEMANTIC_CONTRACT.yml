@@ -1,0 +1,16 @@
+name: find-skills-codex
+preserves:
+  - identify the task before searching
+  - search before reinventing
+  - inspect candidate quality and source reputation
+  - offer installation only after review
+strengthens:
+  - immutable commit pinning
+  - exact licence and notice validation
+  - prompt, script, hook, MCP, telemetry, and symlink inspection
+  - Codex and Windows compatibility reporting
+forbids:
+  - installation from a title or popularity signal alone
+  - uninspected install scripts
+  - default global or noninteractive installation
+  - invented availability or compatibility

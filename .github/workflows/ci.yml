@@ -1,0 +1,53 @@
+name: Continuous integration
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  package:
+    name: Skill schema and package
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: "24"
+      - run: python -m pip install pytest
+      - run: python scripts/validate-package.py
+      - run: python -m pytest -q
+      - run: node --test skills/codex-memory/tests/*.test.mjs
+      - run: python scripts/build-site.py
+      - run: python scripts/build-plugin.py
+  provenance:
+    name: Licence and provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - run: python scripts/validate-package.py
+      - run: git submodule status --recursive
+  security:
+    name: Secret and policy scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      - run: python scripts/validate-package.py
+      - run: |
+          if git ls-files | grep -E '(^|/)(\.env|auth\.json|cookies\.json)$|\.(db|db-wal|db-shm)$'; then
+            echo "Forbidden secret/state artifact tracked"
+            exit 1
+          fi

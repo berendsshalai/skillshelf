@@ -1,0 +1,11 @@
+skill: superpowers-codex
+upstream:
+  repository: https://github.com/obra/superpowers
+  commit: 3dcbd5c4b48e02263fbf4a3c01e3fe4f81d584d9
+  tag: v6.2.0
+  source_path: skills
+  license: MIT
+  copyright: Copyright 2025 Jesse Vincent
+vendor_path: vendor/superpowers
+adaptation: Single Codex-native router over intact internal modules
+modified_upstream_files: []

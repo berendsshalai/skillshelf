@@ -1,0 +1,6 @@
+# Names only. Never commit live values.
+GH_TOKEN=
+CODEX_HOME=
+CLAUDE_MEM_DATA_DIR=
+DO_NOT_TRACK=1
+CLAUDE_MEM_TELEMETRY=0
