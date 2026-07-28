@@ -1,0 +1,8 @@
+baseline:
+  strategy: eager-master
+  estimated_context_tokens: 76903
+agentic:
+  strategy: lazy-specialist
+  median_estimated_context_tokens: 14532
+quality_threshold: 1.0
+method: deterministic UTF-8 byte approximation divided by four; no model claim

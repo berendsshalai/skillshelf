@@ -1,0 +1,174 @@
+{
+  "schema_version": 1,
+  "master": {
+    "id": "skillshelf-master",
+    "display_name": "SkillShelf Master",
+    "description": "Central Codex-first orchestrator for SkillShelf.",
+    "instruction_file": "agents/instructions/skillshelf-master.md",
+    "model_profile": "orchestrator",
+    "max_turns": 12,
+    "output_contract": "OrchestratorResult",
+    "specialist_mode": "agents_as_tools"
+  },
+  "agents": [
+    {
+      "id": "find-skills-agent",
+      "display_name": "Find Skills Agent",
+      "skill": "find-skills-codex",
+      "skill_path": "skills/find-skills-codex/SKILL.md",
+      "instruction_file": "agents/instructions/find-skills-agent.md",
+      "model_profile": "retrieval",
+      "output_contract": "SpecialistResult",
+      "max_turns": 6,
+      "tool_name": "find_skills_specialist",
+      "tool_description": "Search for, inspect, verify and compare installable skills.",
+      "allowed_mcp": [
+        "github-read",
+        "skill-registry-read",
+        "web-read"
+      ],
+      "allowed_capabilities": [
+        "read_files",
+        "search_sources",
+        "run_safe_commands"
+      ],
+      "prohibited_capabilities": [
+        "install_without_approval",
+        "repository_write",
+        "star_repository"
+      ],
+      "token_budget": {
+        "input": 12000,
+        "output": 1800
+      }
+    },
+    {
+      "id": "superpowers-agent",
+      "display_name": "Superpowers Agent",
+      "skill": "superpowers-codex",
+      "skill_path": "skills/superpowers-codex/SKILL.md",
+      "instruction_file": "agents/instructions/superpowers-agent.md",
+      "model_profile": "reasoning",
+      "output_contract": "SpecialistResult",
+      "max_turns": 10,
+      "tool_name": "software_methodology_specialist",
+      "tool_description": "Plan, implement, debug, test, review and verify software work.",
+      "allowed_mcp": [
+        "github-project",
+        "filesystem-project"
+      ],
+      "allowed_capabilities": [
+        "read_files",
+        "write_project_files",
+        "run_tests",
+        "run_safe_commands",
+        "inspect_git"
+      ],
+      "prohibited_capabilities": [
+        "force_push",
+        "delete_unrelated_files",
+        "publish_without_verification"
+      ],
+      "token_budget": {
+        "input": 24000,
+        "output": 3000
+      }
+    },
+    {
+      "id": "memory-agent",
+      "display_name": "Memory Agent",
+      "skill": "codex-memory",
+      "skill_path": "skills/codex-memory/SKILL.md",
+      "instruction_file": "agents/instructions/memory-agent.md",
+      "model_profile": "retrieval",
+      "output_contract": "SpecialistResult",
+      "max_turns": 6,
+      "tool_name": "project_memory_specialist",
+      "tool_description": "Search and synthesize relevant cross-session project memory using progressive disclosure.",
+      "allowed_mcp": [
+        "skillshelf-memory"
+      ],
+      "allowed_capabilities": [
+        "search_memory_index",
+        "inspect_memory_timeline",
+        "fetch_selected_observations"
+      ],
+      "prohibited_capabilities": [
+        "fetch_entire_memory_database",
+        "expose_private_records",
+        "write_memory_without_policy"
+      ],
+      "token_budget": {
+        "input": 10000,
+        "output": 1600
+      }
+    },
+    {
+      "id": "design-intelligence-agent",
+      "display_name": "Design Intelligence Agent",
+      "skill": "codex-design-intelligence",
+      "skill_path": "skills/codex-design-intelligence/SKILL.md",
+      "instruction_file": "agents/instructions/design-intelligence-agent.md",
+      "model_profile": "creative_reasoning",
+      "output_contract": "SpecialistResult",
+      "max_turns": 10,
+      "tool_name": "design_intelligence_specialist",
+      "tool_description": "Design, critique, audit, redesign, polish and harden frontend interfaces.",
+      "allowed_mcp": [
+        "filesystem-project",
+        "browser-read",
+        "image-reference-read"
+      ],
+      "allowed_capabilities": [
+        "read_files",
+        "write_project_files",
+        "inspect_browser",
+        "capture_screenshots",
+        "run_frontend_tests"
+      ],
+      "prohibited_capabilities": [
+        "change_product_facts",
+        "replace_user_assets_without_authority",
+        "unlimited_visual_iteration"
+      ],
+      "token_budget": {
+        "input": 22000,
+        "output": 2800
+      }
+    },
+    {
+      "id": "skill-governor-agent",
+      "display_name": "Skill Governor Agent",
+      "skill": "codex-skill-governor",
+      "skill_path": "skills/codex-skill-governor/SKILL.md",
+      "instruction_file": "agents/instructions/skill-governor-agent.md",
+      "model_profile": "governance",
+      "output_contract": "GovernanceResult",
+      "max_turns": 8,
+      "tool_name": "skill_governance_specialist",
+      "tool_description": "Analyse execution evidence, run evaluations and stage reviewed skill updates.",
+      "allowed_mcp": [
+        "github-read",
+        "filesystem-governance",
+        "skillshelf-memory"
+      ],
+      "allowed_capabilities": [
+        "read_agent_events",
+        "read_skill_files",
+        "write_observation_log",
+        "create_staged_update",
+        "run_evaluations"
+      ],
+      "prohibited_capabilities": [
+        "modify_live_skill",
+        "merge_staged_update",
+        "expand_mcp_permissions",
+        "publish_without_approval"
+      ],
+      "token_budget": {
+        "input": 16000,
+        "output": 2200
+      }
+    }
+  ]
+}

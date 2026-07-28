@@ -8,7 +8,8 @@ SkillShelf is a downstream integration and adaptation. It is not affiliated with
 
 - A public skills library and Codex plugin.
 - A transparent pin ledger plus self-contained vendored source snapshots.
-- A reusable eight-agent architecture with bounded delegation.
+- A shared one-master/five-specialist architecture with bounded delegation.
+- An installable `skillshelf-agents` package and `skillshelf` CLI.
 - A least-privilege MCP registry.
 - A GitHub Pages documentation and socials site.
 - A staged upstream-sync system that never auto-merges.
@@ -32,6 +33,18 @@ The plugin uses current `.codex-plugin/plugin.json`, repository `.agents/skills/
 Detailed upstream modules remain below `vendor/`; only these five routers are discoverable.
 
 ## Installation
+
+Agent runtime quick start:
+
+```powershell
+git clone https://github.com/berendsshalai/skillshelf.git
+cd skillshelf
+./scripts/install-agent-runtime.ps1
+skillshelf doctor
+skillshelf ask "Find a skill for Playwright accessibility testing"
+```
+
+The installer creates an isolated environment, validates the registry, generates native agents, and runs offline smoke tests. It does not call a model, consume API tokens, enable auto-review, or star the repository. Model-backed commands require `OPENAI_API_KEY`.
 
 PowerShell, project scope:
 
@@ -91,6 +104,8 @@ pwsh ./scripts/uninstall.ps1 -Scope Project
 Uninstall removes only the five SkillShelf-owned directories. Restore a pre-install snapshot from `.skillshelf-backup-<timestamp>` when needed. Memory has separate dry-run-gated uninstall and recovery commands under `skills/codex-memory/scripts/`.
 
 ## Agent system
+
+`agents/registry.yml` is the single source of truth for SkillShelfMaster and the five skill specialists. `scripts/generate-agents.py` creates current `.codex/agents/*.toml` definitions and an SDK registry snapshot. The SDK uses the manager pattern, strict Pydantic outputs, deterministic high-confidence routing, lazy skill loading, persistent sessions, usage records, guardrails, and staged-only governance.
 
 Eight project agents live in `.codex/agents/`: source audit, Codex migration, memory integration, design integration, MCP security, behavioral evaluation, code review, and release. Read-heavy roles are sandboxed read-only. Every role declares skill/tool boundaries and evidence output.
 

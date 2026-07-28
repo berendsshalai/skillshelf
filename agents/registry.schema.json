@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["schema_version", "master", "agents"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "master": {"$ref": "#/$defs/master"},
+    "agents": {"type": "array", "minItems": 5, "maxItems": 5, "items": {"$ref": "#/$defs/agent"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "master": {
+      "type": "object",
+      "required": ["id", "display_name", "description", "instruction_file", "model_profile", "max_turns", "output_contract", "specialist_mode"],
+      "properties": {
+        "id": {"type": "string", "const": "skillshelf-master"},
+        "display_name": {"type": "string"},
+        "description": {"type": "string"},
+        "instruction_file": {"type": "string"},
+        "model_profile": {"type": "string"},
+        "max_turns": {"type": "integer", "minimum": 1, "maximum": 20},
+        "output_contract": {"const": "OrchestratorResult"},
+        "specialist_mode": {"const": "agents_as_tools"}
+      },
+      "additionalProperties": false
+    },
+    "agent": {
+      "type": "object",
+      "required": ["id", "display_name", "skill", "skill_path", "instruction_file", "model_profile", "output_contract", "max_turns", "tool_name", "tool_description", "allowed_mcp", "allowed_capabilities", "prohibited_capabilities", "token_budget"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "display_name": {"type": "string"},
+        "skill": {"type": "string"},
+        "skill_path": {"type": "string"},
+        "instruction_file": {"type": "string"},
+        "model_profile": {"type": "string"},
+        "output_contract": {"enum": ["SpecialistResult", "GovernanceResult"]},
+        "max_turns": {"type": "integer", "minimum": 1, "maximum": 20},
+        "tool_name": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+        "tool_description": {"type": "string"},
+        "allowed_mcp": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "allowed_capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "prohibited_capabilities": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+        "token_budget": {
+          "type": "object",
+          "required": ["input", "output"],
+          "additionalProperties": false,
+          "properties": {"input": {"type": "integer", "minimum": 1}, "output": {"type": "integer", "minimum": 1}}
+        }
+      }
+    }
+  }
+}

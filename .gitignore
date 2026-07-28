@@ -4,6 +4,7 @@ node_modules/
 dist/
 _site/
 work/
+.venv/
 *.db
 *.db-wal
 *.db-shm

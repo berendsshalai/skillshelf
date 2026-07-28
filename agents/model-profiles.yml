@@ -1,0 +1,8 @@
+schema_version: 1
+default_model: gpt-5.6-sol
+profiles:
+  orchestrator: {env: SKILLSHELF_MODEL_ORCHESTRATOR, reasoning: medium, verbosity: low}
+  reasoning: {env: SKILLSHELF_MODEL_REASONING, reasoning: medium, verbosity: low}
+  retrieval: {env: SKILLSHELF_MODEL_RETRIEVAL, reasoning: low, verbosity: low}
+  creative_reasoning: {env: SKILLSHELF_MODEL_DESIGN, reasoning: medium, verbosity: low}
+  governance: {env: SKILLSHELF_MODEL_GOVERNANCE, reasoning: medium, verbosity: low}

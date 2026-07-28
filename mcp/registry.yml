@@ -1,5 +1,122 @@
 version: 1
 servers:
+  - name: github-read
+    purpose: Read public or authorised GitHub source metadata without mutation.
+    required_by: [find-skills-agent, skill-governor-agent]
+    transport: connector
+    authentication: user-managed
+    read_tools: [repository_read, issue_read, pull_request_read]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Explicit repositories only.
+    secret_environment_variables: [GH_TOKEN]
+    installation_status: optional
+    validation_command: gh auth status
+    fallback: Public HTTPS and local git metadata.
+  - name: skill-registry-read
+    purpose: Inspect configured skill registries.
+    required_by: [find-skills-agent]
+    transport: host
+    authentication: none
+    read_tools: [search_files]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Skill metadata only.
+    secret_environment_variables: []
+    installation_status: built-in
+    validation_command: python scripts/validate-agents.py
+    fallback: Local skill discovery.
+  - name: web-read
+    purpose: Read public source documentation.
+    required_by: [find-skills-agent]
+    transport: connector
+    authentication: none
+    read_tools: [search, open]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Public pages relevant to the delegated task.
+    secret_environment_variables: []
+    installation_status: optional
+    validation_command: python scripts/validate-agents.py
+    fallback: No-web result with explicit limitation.
+  - name: github-project
+    purpose: Read project GitHub state and perform approved repository writes.
+    required_by: [superpowers-agent]
+    transport: connector
+    authentication: user-managed
+    read_tools: [repository_read, issue_read, pull_request_read]
+    write_tools: [branch_push, pull_request_create]
+    confirmation_required: true
+    data_scope: Current repository.
+    secret_environment_variables: [GH_TOKEN]
+    installation_status: optional
+    validation_command: gh auth status
+    fallback: Local git only.
+  - name: filesystem-project
+    purpose: Bounded project file reads and approved writes.
+    required_by: [superpowers-agent, design-intelligence-agent]
+    transport: host
+    authentication: sandbox
+    read_tools: [read_file, search_files]
+    write_tools: [apply_patch]
+    confirmation_required: false
+    data_scope: Current repository excluding upstream submodules.
+    secret_environment_variables: []
+    installation_status: built-in
+    validation_command: python scripts/validate-agents.py
+    fallback: Read-only operation.
+  - name: skillshelf-memory
+    purpose: Progressive project memory retrieval.
+    required_by: [memory-agent, skill-governor-agent]
+    transport: stdio
+    authentication: local-process
+    read_tools: [search, timeline, get_observations]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Current project.
+    secret_environment_variables: []
+    installation_status: optional
+    validation_command: pwsh scripts/doctor-memory.ps1
+    fallback: Project-scoped SQLite keyword search.
+  - name: browser-read
+    purpose: Inspect and capture the authorised project UI.
+    required_by: [design-intelligence-agent]
+    transport: connector
+    authentication: host-session
+    read_tools: [open, inspect, screenshot]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Project previews and named deployments.
+    secret_environment_variables: []
+    installation_status: optional
+    validation_command: python scripts/build-site.py
+    fallback: Static checks.
+  - name: image-reference-read
+    purpose: Read user-provided or project image references.
+    required_by: [design-intelligence-agent]
+    transport: host
+    authentication: sandbox
+    read_tools: [view_image]
+    write_tools: []
+    confirmation_required: false
+    data_scope: Explicit project and user-provided image paths.
+    secret_environment_variables: []
+    installation_status: built-in
+    validation_command: python scripts/validate-agents.py
+    fallback: Continue without unavailable image evidence.
+  - name: filesystem-governance
+    purpose: Write observations and staged proposals outside live skills.
+    required_by: [skill-governor-agent]
+    transport: host
+    authentication: sandbox
+    read_tools: [read_file, search_files]
+    write_tools: [write_observation, create_staged_copy]
+    confirmation_required: true
+    data_scope: SkillShelf events and staged-updates directories only.
+    secret_environment_variables: []
+    installation_status: built-in
+    validation_command: python scripts/validate-agents.py
+    fallback: Read-only governance report.
   - name: github
     purpose: Inspect upstream repositories, issues, pull requests, and publish only when explicitly authorised.
     required_by: [find-skills-codex, source_audit_agent, release_agent]

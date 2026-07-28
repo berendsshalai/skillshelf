@@ -1,5 +1,11 @@
 # Roadmap
 
+## Agent runtime follow-up
+
+- Run protected credentialed quality evaluations against representative private projects.
+- Enable optional live memory MCP tests in a disposable profile.
+- Compare lower-cost model profiles only after the recorded quality threshold is preserved.
+
 ## Required next work
 
 - Complete live end-to-end validation against an installed upstream claude-mem worker/MCP in a disposable Codex profile; the repository validates the pinned integration evidence and local administration layer, but does not bundle the upstream compiled worker.

@@ -1,5 +1,52 @@
 # SkillShelf handoff
 
+## Agentic runtime patch
+
+- Branch: `codex/agentic-runtime`
+- Python distribution: `skillshelf-agents` 0.2.0
+- Import package: `skillshelf_agents`
+- CLI: `skillshelf`
+- Shared source: `agents/registry.yml`
+- Native definitions: one master plus five generated Codex specialists
+- SDK pattern: manager with specialists as tools and lazy dynamic skill instructions
+
+Install:
+
+```powershell
+./scripts/install-agent-runtime.ps1
+& ./sdk/python/.venv/Scripts/skillshelf.exe doctor
+```
+
+Offline commands do not require an API key. Model-backed `ask` and `run` require `OPENAI_API_KEY`. The installer does not call a model, enable auto-review, modify unrelated Codex configuration, or perform GitHub engagement.
+
+Measured deterministic context comparison:
+
+| Strategy | Estimated skill-file context |
+|---|---:|
+| Eager master with all five `SKILL.md` files | 4,223 tokens |
+| Lazy selected specialist median | 734 tokens |
+
+This bytes/4 measurement shows a 3,489-token reduction for skill-file context while all 5/5 deterministic routing fixtures pass. It is not a measurement of total paid model usage.
+
+Runtime verification:
+
+| Gate | Result |
+|---|---|
+| Registry and generated Codex agents | Passed |
+| SDK unit/integration/safety tests | 22 passed |
+| Repository tests | 34 passed |
+| Memory Node tests | 9 passed |
+| Routing evaluations | 5 passed |
+| Ruff and strict mypy | Passed |
+| Offline CLI/install smoke | Passed |
+| Python wheel and plugin archive | Passed |
+| MCP | Policy/permissions passed; optional live servers degrade as `SKIPPED` |
+| Memory | Progressive integration present; live upstream worker not installed |
+| Governance | Deterministic events, staging, approval and rollback tested |
+| Star support | Explicit `--yes`, auth, idempotency and verification tested |
+
+The SDK session database, Codex project memory and governor observations remain separate. Sensitive tracing is off by default. Auto-review is off and no proposal can mutate a live skill without explicit approval and passing evaluations.
+
 ## Project state
 
 The complete release is at `C:\Users\User\Desktop\skillshelf` on branch `main`.

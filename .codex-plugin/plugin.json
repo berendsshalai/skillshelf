@@ -1,6 +1,6 @@
 {
   "name": "skillshelf",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Five provenance-preserving, Codex-first workflows for skill discovery, software delivery, memory, design, and skill governance.",
   "author": {
     "name": "Sha-Lai Berends"

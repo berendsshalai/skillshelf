@@ -2,6 +2,16 @@
 
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [0.2.0] - 2026-07-28
+
+### Added
+
+- Shared master/five-specialist registry for native Codex and OpenAI Agents SDK.
+- Installable `skillshelf-agents` package, CLI, lazy skill loader, routing, sessions, budgets and MCP policy runtime.
+- Strict outputs, privacy-safe events, staged improvement approval and rollback.
+- Explicit consent-gated and verified GitHub star support.
+- Offline evaluations, generation drift checks, installers and agent runtime documentation.
+
 ## [0.1.0] - 2026-07-28
 
 ### Added

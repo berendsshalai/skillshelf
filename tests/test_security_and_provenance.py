@@ -21,7 +21,7 @@ def test_vendor_hashes():
 def test_no_runtime_secret_artifacts():
     forbidden_names = {".env", "auth.json", "cookies.json"}
     for path in ROOT.rglob("*"):
-        if ".git" in path.parts or "upstream" in path.parts:
+        if any(part in {".git", ".venv", "work", "upstream"} for part in path.parts):
             continue
         assert path.name not in forbidden_names
         assert not path.name.endswith((".db", ".db-wal", ".db-shm"))
@@ -29,7 +29,7 @@ def test_no_runtime_secret_artifacts():
 def test_mcp_registry_has_write_confirmations():
     value = (ROOT / "mcp/registry.yml").read_text()
     assert "secret_environment_variables:" in value
-    github = value.split("- name: github", 1)[1].split("- name:", 1)[0]
+    github = value.split("- name: github\n", 1)[1].split("- name:", 1)[0]
     assert "confirmation_required: true" in github
 
 def test_workflows_do_not_expose_pull_request_secrets():

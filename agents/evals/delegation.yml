@@ -1,0 +1,9 @@
+cases:
+  - name: minimal-memory
+    task: "what did we decide last week?"
+    required: [memory-agent]
+    forbidden: [find-skills-agent, design-intelligence-agent, skill-governor-agent]
+  - name: direct-explicit
+    task: "review the prior decision"
+    explicit_agent: memory-agent
+    required: [memory-agent]

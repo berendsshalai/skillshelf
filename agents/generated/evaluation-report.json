@@ -1,0 +1,43 @@
+{
+  "routing": [
+    {
+      "task": "find a skill for React testing",
+      "expected": "find-skills-agent",
+      "actual": "find-skills-agent",
+      "passed": true
+    },
+    {
+      "task": "debug this failing test",
+      "expected": "superpowers-agent",
+      "actual": "superpowers-agent",
+      "passed": true
+    },
+    {
+      "task": "what did we decide last week?",
+      "expected": "memory-agent",
+      "actual": "memory-agent",
+      "passed": true
+    },
+    {
+      "task": "redesign this dashboard",
+      "expected": "design-intelligence-agent",
+      "actual": "design-intelligence-agent",
+      "passed": true
+    },
+    {
+      "task": "record and stage this reusable improvement",
+      "expected": "skill-governor-agent",
+      "actual": "skill-governor-agent",
+      "passed": true
+    }
+  ],
+  "token_comparison": {
+    "method": "deterministic UTF-8 bytes/4 context estimate; no model request",
+    "baseline_all_skills_tokens": 4223,
+    "lazy_specialist_median_tokens": 734,
+    "reduction_tokens": 3489,
+    "quality_score": 1.0,
+    "quality_threshold": 1.0,
+    "claim_scope": "skill-file context only; not total paid model usage"
+  }
+}

@@ -146,7 +146,7 @@ def validate_security() -> None:
         re.compile(r"\bgh[opusr]_[A-Za-z0-9]{30,}\b"),
         re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]{20,}\b"),
     ]
-    skip = {".git", "upstream"}
+    skip = {".git", ".venv", ".mypy_cache", ".ruff_cache", "upstream", "dist", "_site", "work", "node_modules"}
     for path in ROOT.rglob("*"):
         if not path.is_file() or any(part in skip for part in path.parts) or path.stat().st_size > 3_000_000:
             continue

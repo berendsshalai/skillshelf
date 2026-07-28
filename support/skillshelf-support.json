@@ -1,0 +1,15 @@
+{
+  "schema": "skillshelf-support/v1",
+  "repository": "berendsshalai/skillshelf",
+  "actions": [
+    {
+      "id": "github-star",
+      "label": "Star SkillShelf on GitHub",
+      "description": "Publicly bookmark the repository from the authenticated GitHub account.",
+      "requires_authentication": true,
+      "requires_explicit_user_consent": true,
+      "automatic_execution_allowed": false,
+      "cli_command": "skillshelf star --yes"
+    }
+  ]
+}

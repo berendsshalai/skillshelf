@@ -1,5 +1,13 @@
 # SkillShelf architecture
 
+## Coordinated runtimes
+
+`agents/registry.yml` controls both execution surfaces. Native Codex reads generated project-agent TOML; `skillshelf-agents` validates the same registry and constructs OpenAI Agents SDK agents. SkillShelfMaster owns routing, user communication, budgets, approvals and synthesis. The five specialists are agents-as-tools and never call the master or themselves.
+
+The SDK discovers skill metadata without loading bodies. A selected specialist receives only its instruction and current `SKILL.md`; references remain explicitly routed and directory-bound. Model profiles are environment-overridable. Sessions, project memory and governance observations use separate stores.
+
+MCP tools come from declared allowlists. Runtime boundaries enforce read/write separation and approval. Unavailable servers degrade explicitly. Deterministic events feed staged proposals; live skills cannot change until explicit approval, evaluation and rollback protection succeed.
+
 ## Five-skill routing
 
 Codex discovers exactly five parent skills. Each router loads one relevant internal module and directly referenced resources; vendored modules are not copied into the discoverable `skills/` root. This keeps initial descriptions inside the Codex skill-list context budget while preserving full upstream method depth.

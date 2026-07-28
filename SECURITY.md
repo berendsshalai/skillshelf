@@ -32,4 +32,10 @@ Read-heavy agent profiles use read-only sandboxing. Write profiles remain worksp
 
 ## Safe updates and releases
 
+Updates run on a staging branch. CI pins actions to immutable SHAs. Release gates cover schemas, tests, licences, submodule pins, site output, and secret artefacts.
+
+## Agentic runtime threats
+
+Skill and tool text is untrusted and cannot expand registry permissions. The runtime blocks path traversal, upstream mutation, secret-shaped output, hidden engagement actions, unrestricted tool surfaces, runaway delegation, circular calls and recursive governor review. MCP tool poisoning and tool-description injection are contained by static server assignment plus runtime filters. Writes remain inside authorised roots and sensitive or external writes require approval. Usage and traces exclude prompts and secrets by default.
+
 Do not force-push, auto-merge drift, replace unrelated configuration, or run uninspected upstream installers. Pin GitHub Actions to immutable commits where practical, keep workflow permissions minimal, and verify the release archive plus tag before publication.

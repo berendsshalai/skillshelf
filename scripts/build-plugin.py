@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 from __future__ import annotations
-import pathlib, subprocess, sys, zipfile
+import json, pathlib, subprocess, sys, zipfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 subprocess.run([sys.executable, str(ROOT / "scripts/sync-plugin-tree.py")], check=True)
 PACKAGE = ROOT / "plugins/skillshelf"
 OUT = ROOT / "dist"
 OUT.mkdir(exist_ok=True)
-archive = OUT / "skillshelf-0.1.0.zip"
+version = json.loads((PACKAGE / ".codex-plugin/plugin.json").read_text(encoding="utf-8"))["version"]
+archive = OUT / f"skillshelf-{version}.zip"
 with zipfile.ZipFile(archive, "w", zipfile.ZIP_DEFLATED) as zf:
     for child in sorted(PACKAGE.rglob("*")):
         if child.is_file():

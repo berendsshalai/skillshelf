@@ -1,0 +1,6 @@
+cases:
+  - {task: "find a skill for React testing", expected: find-skills-agent}
+  - {task: "debug this failing test", expected: superpowers-agent}
+  - {task: "what did we decide last week?", expected: memory-agent}
+  - {task: "redesign this dashboard", expected: design-intelligence-agent}
+  - {task: "record and stage this reusable improvement", expected: skill-governor-agent}
