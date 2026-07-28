@@ -24,9 +24,12 @@ def create_app(state_root: Path | str = ".skillshelf") -> FastAPI:
         with sqlite3.connect(database) as connection:
             connection.row_factory = sqlite3.Row
             try:
-                return [dict(row) for row in connection.execute(
-                    "SELECT id,tenant_id,workflow_id,state,created_at,updated_at FROM workflow_runs ORDER BY created_at DESC"
-                )]
+                return [
+                    dict(row)
+                    for row in connection.execute(
+                        "SELECT id,tenant_id,workflow_id,state,created_at,updated_at FROM workflow_runs ORDER BY created_at DESC"
+                    )
+                ]
             except sqlite3.OperationalError:
                 return []
 
@@ -47,10 +50,7 @@ def create_app(state_root: Path | str = ".skillshelf") -> FastAPI:
 
     @app.get("/connectors")
     def list_connectors() -> list[dict[str, Any]]:
-        return [
-            json.loads(path.read_text(encoding="utf-8"))
-            for path in sorted(connectors.glob("*.json"))
-        ]
+        return [json.loads(path.read_text(encoding="utf-8")) for path in sorted(connectors.glob("*.json"))]
 
     @app.post("/connectors", status_code=status.HTTP_201_CREATED)
     def add_connector(manifest: ConnectorManifest) -> dict[str, Any]:

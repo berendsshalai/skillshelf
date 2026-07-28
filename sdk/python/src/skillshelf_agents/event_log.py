@@ -22,4 +22,7 @@ class EventLog:
     def read(self) -> list[Observation]:
         if not self.index.exists():
             return []
-        return [Observation.model_validate_json(line) for line in self.index.read_text(encoding="utf-8").splitlines()]
+        return [
+            Observation.model_validate_json(line)
+            for line in self.index.read_text(encoding="utf-8").splitlines()
+        ]

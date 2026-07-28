@@ -153,15 +153,11 @@ class GovernanceManager:
                 )
                 self._write_proposal(failed)
                 raise GovernanceError(f"{name} evaluation failed: {detail}")
-        evaluated = replace(
-            proposal, status="EVALUATED", evaluations=tuple(records)
-        )
+        evaluated = replace(proposal, status="EVALUATED", evaluations=tuple(records))
         self._write_proposal(evaluated)
         return evaluated
 
-    def approve(
-        self, proposal_id: str, *, approved_by: str, confirmed: bool
-    ) -> Approval:
+    def approve(self, proposal_id: str, *, approved_by: str, confirmed: bool) -> Approval:
         if not confirmed:
             raise GovernanceError("approval requires explicit confirmation")
         if not approved_by.strip():
@@ -230,12 +226,8 @@ class GovernanceManager:
                 "staged_digest": proposal.staged_digest,
                 "live_path": str(live),
                 "backup_path": str(backup),
-                "old_path": str(
-                    live.with_name(f".{live.name}.{proposal.proposal_id}.old")
-                ),
-                "candidate_path": str(
-                    live.with_name(f".{live.name}.{proposal.proposal_id}.new")
-                ),
+                "old_path": str(live.with_name(f".{live.name}.{proposal.proposal_id}.old")),
+                "candidate_path": str(live.with_name(f".{live.name}.{proposal.proposal_id}.new")),
                 "phase": "BACKUP_COMPLETE",
                 "updated_at": utc_now(),
             }
@@ -257,9 +249,7 @@ class GovernanceManager:
                 final_digest = package_digest(live)
                 if final_digest != proposal.staged_digest:
                     raise GovernanceError("survival verification failed after package swap")
-                applied = replace(
-                    proposal, status="APPLIED", final_digest=final_digest
-                )
+                applied = replace(proposal, status="APPLIED", final_digest=final_digest)
                 self._write_proposal(applied)
                 journal["final_digest"] = final_digest
                 journal = self._advance(journal_path, journal, "COMMITTED")
@@ -306,14 +296,10 @@ class GovernanceManager:
                 remove_tree(candidate)
                 raise
             remove_tree(replaced)
-            rolled_back = replace(
-                proposal, status="ROLLED_BACK", final_digest=proposal.source_digest
-            )
+            rolled_back = replace(proposal, status="ROLLED_BACK", final_digest=proposal.source_digest)
             self._write_proposal(rolled_back)
             journal = read_json(self._journal_path(proposal_id))
-            self._advance(
-                self._journal_path(proposal_id), journal, "ROLLED_BACK"
-            )
+            self._advance(self._journal_path(proposal_id), journal, "ROLLED_BACK")
             return rolled_back
 
     def recover_interrupted(self) -> list[str]:
@@ -366,9 +352,7 @@ class GovernanceManager:
 
         replacement = old if old.exists() else backup
         if not replacement.exists() or package_digest(replacement) != source_digest:
-            raise GovernanceError(
-                f"cannot recover interrupted proposal {journal['proposal_id']}"
-            )
+            raise GovernanceError(f"cannot recover interrupted proposal {journal['proposal_id']}")
         failed = live.with_name(f".{live.name}.{journal['proposal_id']}.failed")
         remove_tree(failed)
         if live.exists():
@@ -471,9 +455,7 @@ class GovernanceManager:
     def _write_journal(path: Path, journal: dict[str, object]) -> None:
         atomic_write_json(path, journal)
 
-    def _advance(
-        self, path: Path, journal: dict[str, object], phase: str
-    ) -> dict[str, object]:
+    def _advance(self, path: Path, journal: dict[str, object], phase: str) -> dict[str, object]:
         updated = dict(journal)
         updated["phase"] = phase
         updated["updated_at"] = utc_now()

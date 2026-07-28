@@ -22,6 +22,8 @@ def test_registry_rejects_unknown_mcp(repo_root, tmp_path):
     (clone / "agents").mkdir()
     (clone / "agents/registry.yml").write_text(yaml.safe_dump(data))
     for name in ("model-profiles.yml", "instructions"):
-        (clone / "agents" / name).symlink_to(repo_root / "agents" / name, target_is_directory=(name == "instructions"))
+        (clone / "agents" / name).symlink_to(
+            repo_root / "agents" / name, target_is_directory=(name == "instructions")
+        )
     with pytest.raises(ValueError, match="unknown MCP"):
         RuntimeRegistry.load(clone)

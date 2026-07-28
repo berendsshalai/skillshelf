@@ -79,8 +79,15 @@ class StockToOfferWorkflow:
             self.database.connection.execute(
                 "INSERT INTO workflow_runs VALUES(?,?,?,?,?,?,?,?,?)",
                 (
-                    run_id, workflow_input.tenant_id, self.workflow_id, idempotency_key, "RUNNING",
-                    input_hash, "{}", now.isoformat(), now.isoformat(),
+                    run_id,
+                    workflow_input.tenant_id,
+                    self.workflow_id,
+                    idempotency_key,
+                    "RUNNING",
+                    input_hash,
+                    "{}",
+                    now.isoformat(),
+                    now.isoformat(),
                 ),
             )
         self.database.connection.commit()
@@ -192,7 +199,8 @@ class StockToOfferWorkflow:
         if not applied:
             return False
         row = self.database.connection.execute(
-            "SELECT result_json FROM workflow_runs WHERE id=?", (run_id,),
+            "SELECT result_json FROM workflow_runs WHERE id=?",
+            (run_id,),
         ).fetchone()
         if not row:
             raise KeyError("workflow run not found")
@@ -200,10 +208,14 @@ class StockToOfferWorkflow:
         statuses = [
             MessageStatus(item[0])
             for item in self.database.connection.execute(
-                "SELECT status FROM message_deliveries WHERE message_id=?", (result.message_id,),
+                "SELECT status FROM message_deliveries WHERE message_id=?",
+                (result.message_id,),
             )
         ]
-        if statuses and all(value in {MessageStatus.DELIVERED, MessageStatus.READ, MessageStatus.REPLIED} for value in statuses):
+        if statuses and all(
+            value in {MessageStatus.DELIVERED, MessageStatus.READ, MessageStatus.REPLIED}
+            for value in statuses
+        ):
             result.state = "COMPLETED"
             self.database.connection.execute(
                 "UPDATE workflow_runs SET state=?,result_json=?,updated_at=? WHERE id=?",

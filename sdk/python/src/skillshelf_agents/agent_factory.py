@@ -53,9 +53,12 @@ class AgentFactory:
             definition.model_profile,
             max_tokens=definition.token_budget.output,
         )
+
         async def lazy_instructions(_context: Any, _agent: Agent) -> str:
             loaded = self.skill_loader.load_skill(definition.skill)
-            return "\n\n".join([instruction, "# Required Skill", loaded.content, "# Delegation Contract", delegation])
+            return "\n\n".join(
+                [instruction, "# Required Skill", loaded.content, "# Delegation Contract", delegation]
+            )
 
         return Agent(
             name=definition.display_name,

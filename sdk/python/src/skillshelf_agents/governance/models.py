@@ -64,12 +64,8 @@ class Proposal:
             status=str(value["status"]),
             live_path=str(value["live_path"]),
             staged_path=str(value["staged_path"]),
-            evaluations=tuple(
-                EvaluationRecord.from_dict(item) for item in value.get("evaluations", [])
-            ),
-            final_digest=(
-                str(value["final_digest"]) if value.get("final_digest") is not None else None
-            ),
+            evaluations=tuple(EvaluationRecord.from_dict(item) for item in value.get("evaluations", [])),
+            final_digest=(str(value["final_digest"]) if value.get("final_digest") is not None else None),
         )
 
 

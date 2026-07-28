@@ -80,7 +80,9 @@ class SkillLoader:
             if data["name"] in names:
                 raise ValueError(f"duplicate skill name: {data['name']}")
             names.add(data["name"])
-            summaries.append(SkillSummary(data["name"], data["description"], path.relative_to(self.root).as_posix()))
+            summaries.append(
+                SkillSummary(data["name"], data["description"], path.relative_to(self.root).as_posix())
+            )
         return summaries
 
     def load_skill(self, skill_id: str) -> LoadedSkill:
@@ -91,7 +93,9 @@ class SkillLoader:
         if metadata["name"] != skill_id:
             raise ValueError("skill directory and frontmatter name differ")
         content, digest = self._read(path)
-        return LoadedSkill(skill_id, metadata["description"], content, path.relative_to(self.root).as_posix(), digest)
+        return LoadedSkill(
+            skill_id, metadata["description"], content, path.relative_to(self.root).as_posix(), digest
+        )
 
     def load_reference(self, skill_id: str, relative_path: str) -> LoadedReference:
         base = self._safe(self.skills_root / skill_id, self.skills_root)

@@ -125,10 +125,18 @@ def persist_decision(database: IntegrationDatabase, tenant_id: str, decision: Pr
             source_record_ids,effective_at,approval_state,evidence_hash)
            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
         (
-            decision.id, tenant_id, json.dumps(payload, sort_keys=True), decision.formula_version,
-            decision.rule_id, decision.rule_version, str(decision.unrounded_selling_price),
-            str(decision.selling_price), decision.currency, json.dumps(decision.source_record_ids),
-            decision.effective_at.astimezone(UTC).isoformat(), decision.approval_state,
+            decision.id,
+            tenant_id,
+            json.dumps(payload, sort_keys=True),
+            decision.formula_version,
+            decision.rule_id,
+            decision.rule_version,
+            str(decision.unrounded_selling_price),
+            str(decision.selling_price),
+            decision.currency,
+            json.dumps(decision.source_record_ids),
+            decision.effective_at.astimezone(UTC).isoformat(),
+            decision.approval_state,
             decision.evidence_hash,
         ),
     )

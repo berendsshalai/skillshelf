@@ -48,11 +48,20 @@ def test_concurrent_observation_writes_are_serialised(tmp_path):
     log = EventLog(tmp_path / "events")
 
     def append(index):
-        log.append(Observation(
-            run_id=str(index), timestamp="2026-07-28T00:00:00Z", agents_used=[], skills_used=[],
-            routing_decision={}, usage={}, tool_failures=[], guardrail_events=[], user_corrections=[],
-            evaluation_failures=[],
-        ))
+        log.append(
+            Observation(
+                run_id=str(index),
+                timestamp="2026-07-28T00:00:00Z",
+                agents_used=[],
+                skills_used=[],
+                routing_decision={},
+                usage={},
+                tool_failures=[],
+                guardrail_events=[],
+                user_corrections=[],
+                evaluation_failures=[],
+            )
+        )
 
     with ThreadPoolExecutor(max_workers=8) as pool:
         list(pool.map(append, range(24)))

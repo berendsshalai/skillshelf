@@ -68,9 +68,7 @@ def test_factory_returns_official_sdk_server_types() -> None:
     http = factory.create(
         MCPServerDefinition(name="remote", transport="streamable_http", url="https://mcp.example")
     )
-    sse = factory.create(
-        MCPServerDefinition(name="legacy", transport="sse", url="https://mcp.example/sse")
-    )
+    sse = factory.create(MCPServerDefinition(name="legacy", transport="sse", url="https://mcp.example/sse"))
 
     assert isinstance(stdio, MCPServerStdio)
     assert isinstance(http, MCPServerStreamableHttp)

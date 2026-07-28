@@ -7,8 +7,13 @@ from pydantic import AnyHttpUrl, BaseModel, Field, model_validator
 
 class AuthenticationDefinition(BaseModel):
     type: Literal[
-        "none", "api_key_header", "api_key_query", "bearer", "basic",
-        "oauth2_client_credentials", "oauth2_authorization_code",
+        "none",
+        "api_key_header",
+        "api_key_query",
+        "bearer",
+        "basic",
+        "oauth2_client_credentials",
+        "oauth2_authorization_code",
     ] = "none"
     secret_reference: str | None = None
     secondary_secret_reference: str | None = None

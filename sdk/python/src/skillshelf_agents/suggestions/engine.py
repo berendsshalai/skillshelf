@@ -20,7 +20,12 @@ class Suggestion(BaseModel):
 RULES = (
     ("connect-stock", "Connect a stock source before building offers.", 100, "has_stock_source"),
     ("configure-pricing", "Configure an effective pricing rule.", 90, "has_pricing_rule"),
-    ("configure-delivery", "Configure a delivery provider for customer estimates.", 80, "has_delivery_provider"),
+    (
+        "configure-delivery",
+        "Configure a delivery provider for customer estimates.",
+        80,
+        "has_delivery_provider",
+    ),
     ("capture-consent", "Capture verified customer consent before messaging.", 70, "has_customer_consent"),
     ("configure-channel", "Configure a verified outbound messaging channel.", 60, "has_message_channel"),
 )

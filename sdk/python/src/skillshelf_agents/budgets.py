@@ -26,7 +26,14 @@ class BudgetTracker:
         self.by_tool: dict[str, int] = defaultdict(int)
 
     def add(self, usage: UsageSummary, *, agent: str | None = None, tool: str | None = None) -> None:
-        for field in ("requests", "input_tokens", "output_tokens", "cached_tokens", "reasoning_tokens", "total_tokens"):
+        for field in (
+            "requests",
+            "input_tokens",
+            "output_tokens",
+            "cached_tokens",
+            "reasoning_tokens",
+            "total_tokens",
+        ):
             setattr(self.usage, field, getattr(self.usage, field) + getattr(usage, field))
         if agent:
             self.by_agent[agent] += usage.total_tokens
@@ -45,8 +52,9 @@ class RuntimeBudgetHooks(RunHooks[Any]):
     def __init__(self, soft_limit: int, hard_limit: int) -> None:
         self.soft_limit, self.hard_limit = soft_limit, hard_limit
 
-    async def on_llm_start(self, context: Any, agent: Any, system_prompt: str | None,
-                           input_items: list[Any]) -> None:
+    async def on_llm_start(
+        self, context: Any, agent: Any, system_prompt: str | None, input_items: list[Any]
+    ) -> None:
         if context.usage.total_tokens >= self.hard_limit:
             raise BudgetExceeded("hard token limit reached; further model delegation stopped")
 
@@ -61,8 +69,13 @@ class UsageStore:
 
     def record(self, run_id: str, session_id: str, usage: UsageSummary, agents: list[str]) -> Path:
         path = self.directory / f"{run_id}.json"
-        payload = {"run_id": run_id, "session_id": session_id, "timestamp": datetime.now(UTC).isoformat(),
-                   "usage": usage.model_dump(), "agents": agents}
+        payload = {
+            "run_id": run_id,
+            "session_id": session_id,
+            "timestamp": datetime.now(UTC).isoformat(),
+            "usage": usage.model_dump(),
+            "agents": agents,
+        }
         with FileLock(str(path) + ".lock"):
             path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
         return path

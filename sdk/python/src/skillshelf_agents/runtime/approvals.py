@@ -126,9 +126,7 @@ class ApprovalStore:
             arguments = (status,)
         query += " ORDER BY created_at"
         with sqlite3.connect(self.database) as connection:
-            identifiers = [
-                str(row[0]) for row in connection.execute(query, arguments).fetchall()
-            ]
+            identifiers = [str(row[0]) for row in connection.execute(query, arguments).fetchall()]
         return [self._record(identifier) for identifier in identifiers]
 
     def approve(self, approval_id: str, *, approving_user: str) -> None:

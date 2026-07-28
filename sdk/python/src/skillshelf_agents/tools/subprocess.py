@@ -52,7 +52,10 @@ class SafeCommandExecutor:
 
     @classmethod
     def _validate_arguments(cls, request: SafeCommandRequest) -> None:
-        if any(argument in cls._SHELL_META or any(char in argument for char in "\r\n") for argument in request.arguments):
+        if any(
+            argument in cls._SHELL_META or any(char in argument for char in "\r\n")
+            for argument in request.arguments
+        ):
             raise SafeCommandViolation("shell syntax is forbidden; commands must use literal argv")
         lowered = [argument.casefold() for argument in request.arguments]
         if request.executable == "git":

@@ -33,7 +33,9 @@ async def test_every_specialist_resolves_its_current_skill(repo_root, tmp_path):
 async def test_model_run_fails_clearly_without_key(repo_root, tmp_path, monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     registry = RuntimeRegistry.load(repo_root)
-    runtime = SkillShelfOrchestrator(registry, AgentFactory(registry, SkillLoader(repo_root)), Settings(home=tmp_path))
+    runtime = SkillShelfOrchestrator(
+        registry, AgentFactory(registry, SkillLoader(repo_root)), Settings(home=tmp_path)
+    )
     with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
         await runtime.run("debug this failing test")
 
@@ -54,7 +56,9 @@ async def test_async_run_succeeds_with_structured_sdk_result(repo_root, tmp_path
 
     class Result:
         final_output = SpecialistResult(
-            agent_id="memory-agent", status="complete", summary="Prior decision found",
+            agent_id="memory-agent",
+            status="complete",
+            summary="Prior decision found",
             context_for_master="Use the prior decision.",
         )
         context_wrapper = type("Context", (), {"usage": Usage()})()
@@ -65,7 +69,9 @@ async def test_async_run_succeeds_with_structured_sdk_result(repo_root, tmp_path
     monkeypatch.setenv("OPENAI_API_KEY", "test-only-placeholder")
     monkeypatch.setattr("skillshelf_agents.orchestrator.Runner.run", fake_run)
     registry = RuntimeRegistry.load(repo_root)
-    runtime = SkillShelfOrchestrator(registry, AgentFactory(registry, SkillLoader(repo_root)), Settings(home=tmp_path))
+    runtime = SkillShelfOrchestrator(
+        registry, AgentFactory(registry, SkillLoader(repo_root)), Settings(home=tmp_path)
+    )
     output = await runtime.run("what did we decide last week?", explicit_agent="memory-agent")
     assert output.answer == "Prior decision found"
     assert output.usage.total_tokens == 30

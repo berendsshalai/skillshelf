@@ -107,8 +107,12 @@ class RepositoryFilesystem:
         if write:
             lowered = {part.casefold() for part in relative_path.parts}
             if lowered.intersection({".git", "vendor", "upstream"}):
-                raise RepositoryPathViolation("writes to Git metadata or immutable vendor sources are forbidden")
-            if any(resolved == submodule or submodule in resolved.parents for submodule in self.submodule_roots):
+                raise RepositoryPathViolation(
+                    "writes to Git metadata or immutable vendor sources are forbidden"
+                )
+            if any(
+                resolved == submodule or submodule in resolved.parents for submodule in self.submodule_roots
+            ):
                 raise RepositoryPathViolation("writes inside submodules are forbidden")
         return resolved
 
@@ -157,9 +161,7 @@ class RepositoryFilesystem:
                 continue
             for line_number, line in enumerate(text.splitlines(), 1):
                 if query.casefold() in line.casefold():
-                    matches.append(
-                        SearchMatch(path=relative.as_posix(), line=line_number, text=line[:1000])
-                    )
+                    matches.append(SearchMatch(path=relative.as_posix(), line=line_number, text=line[:1000]))
                     if len(matches) >= max_results:
                         return matches
         return matches

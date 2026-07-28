@@ -16,9 +16,7 @@ from typing import Any
 SAFE_IDENTIFIER = re.compile(r"^[a-z0-9][a-z0-9._-]{0,127}$")
 SAFE_PROPOSAL_ID = re.compile(r"^proposal-[a-z0-9][a-z0-9-]{5,63}$")
 SHA256 = re.compile(r"^[0-9a-f]{64}$")
-REFERENCE = re.compile(
-    r"(?<![A-Za-z0-9_.-])((?:references|scripts|assets|tests)/[A-Za-z0-9_./-]+)"
-)
+REFERENCE = re.compile(r"(?<![A-Za-z0-9_.-])((?:references|scripts|assets|tests)/[A-Za-z0-9_./-]+)")
 REQUIRED_FILES = (
     "SKILL.md",
     "README.md",
@@ -27,9 +25,7 @@ REQUIRED_FILES = (
     "UPSTREAM_DIFF.md",
 )
 PACKAGE_DIRECTORIES = ("references", "scripts", "assets", "tests")
-IGNORED_ARTIFACT = re.compile(
-    r"(^|/)(?:__pycache__|\.DS_Store)(?:/|$)|\.pyc$|(^|/)\.~lock\."
-)
+IGNORED_ARTIFACT = re.compile(r"(^|/)(?:__pycache__|\.DS_Store)(?:/|$)|\.pyc$|(^|/)\.~lock\.")
 
 
 class SafetyError(RuntimeError):
@@ -104,9 +100,7 @@ def validate_package(package: Path, *, create_missing_directories: bool = False)
 
 
 def package_digest(package: Path, *, create_missing_directories: bool = False) -> str:
-    manifest = validate_package(
-        package, create_missing_directories=create_missing_directories
-    )
+    manifest = validate_package(package, create_missing_directories=create_missing_directories)
     digest = hashlib.sha256()
     for name, value in sorted(manifest.items()):
         digest.update(f"{name}\0{value}\n".encode())
@@ -127,9 +121,7 @@ def atomic_replace(source: Path, destination: Path, timeout: float = 5.0) -> Non
 
 def atomic_write_json(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    file_descriptor, temporary = tempfile.mkstemp(
-        prefix=f".{path.name}.", suffix=".tmp", dir=path.parent
-    )
+    file_descriptor, temporary = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
     temporary_path = Path(temporary)
     try:
         with os.fdopen(file_descriptor, "w", encoding="utf-8", newline="\n") as stream:
@@ -189,9 +181,7 @@ class OwnedFileLock:
         ).encode()
         while True:
             try:
-                descriptor = os.open(
-                    self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600
-                )
+                descriptor = os.open(self.path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
                 with os.fdopen(descriptor, "wb") as stream:
                     stream.write(payload)
                     stream.flush()
@@ -212,6 +202,4 @@ class OwnedFileLock:
 
 
 def binding_digest(fields: dict[str, str]) -> str:
-    return hashlib.sha256(
-        json.dumps(fields, sort_keys=True, separators=(",", ":")).encode()
-    ).hexdigest()
+    return hashlib.sha256(json.dumps(fields, sort_keys=True, separators=(",", ":")).encode()).hexdigest()

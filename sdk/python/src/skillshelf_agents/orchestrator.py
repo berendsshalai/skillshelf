@@ -40,7 +40,11 @@ class OperationalRunHooks(RunHooks[Any]):
         self.tools_used: list[str] = []
 
     async def on_llm_start(
-        self, context: Any, agent: Any, system_prompt: str | None, input_items: list[Any],
+        self,
+        context: Any,
+        agent: Any,
+        system_prompt: str | None,
+        input_items: list[Any],
     ) -> None:
         await self.budgets.on_llm_start(context, agent, system_prompt, input_items)
 
@@ -97,16 +101,13 @@ class SkillShelfOrchestrator:
 
     def _build_agents(self, budget_ledger: BudgetLedger) -> OperationalRunHooks:
         budget_hooks = RuntimeBudgetHooks(budget_ledger)
-        specialist_tool_names = {
-            item.tool_name: item.id for item in self.registry.agents
-        }
+        specialist_tool_names = {item.tool_name: item.id for item in self.registry.agents}
         hooks = OperationalRunHooks(budget_hooks, specialist_tool_names)
         tools: list[Any] = []
         self.specialists = {}
         for definition in self.registry.agents:
             local_capabilities = [
-                item for item in definition.allowed_capabilities
-                if self.tool_registry.supports(item)
+                item for item in definition.allowed_capabilities if self.tool_registry.supports(item)
             ]
             function_tools = self.tool_registry.build(local_capabilities)
             specialist = self.factory.build_specialist(definition, tools=function_tools)
@@ -123,7 +124,10 @@ class SkillShelfOrchestrator:
                 if not set(delegation.allowed_capabilities).issubset(allowed):
                     raise PermissionError("delegation requests an undeclared capability")
                 runtime = context.context
-                if isinstance(runtime, RuntimeContext) and runtime.delegation_depth >= runtime.max_delegation_depth:
+                if (
+                    isinstance(runtime, RuntimeContext)
+                    and runtime.delegation_depth >= runtime.max_delegation_depth
+                ):
                     raise PermissionError("maximum delegation depth reached")
                 return False
 

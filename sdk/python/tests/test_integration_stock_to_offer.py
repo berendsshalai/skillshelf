@@ -50,8 +50,13 @@ def test_durable_idempotent_stock_to_offer_and_webhook_restart(tmp_path):
     database.map_category("tenant-a", "supplier-a", "electronics", "category-electronics")
     gateway.store_consent(
         ConsentRecord(
-            id="consent-1", tenant_id="tenant-a", customer_id="customer-a",
-            purpose="price_quote", channel="*", granted=True, verified_recipient=True,
+            id="consent-1",
+            tenant_id="tenant-a",
+            customer_id="customer-a",
+            purpose="price_quote",
+            channel="*",
+            granted=True,
+            verified_recipient=True,
         )
     )
     observed = datetime(2026, 7, 28, 8, tzinfo=UTC)
@@ -64,7 +69,12 @@ def test_durable_idempotent_stock_to_offer_and_webhook_restart(tmp_path):
         delivery_request=DeliveryRequest(
             origin=Address(country="ZA", postal_code="2001", city="Johannesburg"),
             destination=Address(country="ZA", postal_code="8001", city="Cape Town"),
-            parcel=Parcel(weight_kg=Decimal("1"), length_cm=Decimal("10"), width_cm=Decimal("10"), height_cm=Decimal("10")),
+            parcel=Parcel(
+                weight_kg=Decimal("1"),
+                length_cm=Decimal("10"),
+                width_cm=Decimal("10"),
+                height_cm=Decimal("10"),
+            ),
             requested_at=datetime.fromisoformat("2026-07-28T10:00:00+02:00"),
         ),
         customer_id="customer-a",
@@ -72,12 +82,18 @@ def test_durable_idempotent_stock_to_offer_and_webhook_restart(tmp_path):
         channels=["email", "whatsapp"],
     )
     first = workflow.run(
-        workflow_input, run_id="run-1", idempotency_key="stock-001-v1",
-        authority={"send_customer_message"}, now=observed,
+        workflow_input,
+        run_id="run-1",
+        idempotency_key="stock-001-v1",
+        authority={"send_customer_message"},
+        now=observed,
     )
     second = workflow.run(
-        workflow_input, run_id="ignored-run", idempotency_key="stock-001-v1",
-        authority={"send_customer_message"}, now=observed,
+        workflow_input,
+        run_id="ignored-run",
+        idempotency_key="stock-001-v1",
+        authority={"send_customer_message"},
+        now=observed,
     )
     assert first == second
     assert first.price == "156.25"
@@ -88,14 +104,22 @@ def test_durable_idempotent_stock_to_offer_and_webhook_restart(tmp_path):
 
     database, _gateway, workflow = _services(path)
     assert workflow.reconcile_delivery(
-        run_id="run-1", provider="mock", event_id="evt-email",
-        provider_reference=references["email"], status=MessageStatus.DELIVERED,
-        payload={"status": "delivered"}, received_at=observed,
+        run_id="run-1",
+        provider="mock",
+        event_id="evt-email",
+        provider_reference=references["email"],
+        status=MessageStatus.DELIVERED,
+        payload={"status": "delivered"},
+        received_at=observed,
     )
     assert workflow.reconcile_delivery(
-        run_id="run-1", provider="mock", event_id="evt-whatsapp",
-        provider_reference=references["whatsapp"], status=MessageStatus.DELIVERED,
-        payload={"status": "delivered"}, received_at=observed,
+        run_id="run-1",
+        provider="mock",
+        event_id="evt-whatsapp",
+        provider_reference=references["whatsapp"],
+        status=MessageStatus.DELIVERED,
+        payload={"status": "delivered"},
+        received_at=observed,
     )
     row = database.connection.execute(
         "SELECT state,result_json FROM workflow_runs WHERE id='run-1'",
@@ -104,9 +128,13 @@ def test_durable_idempotent_stock_to_offer_and_webhook_restart(tmp_path):
     assert json.loads(row["result_json"])["state"] == "COMPLETED"
     assert database.count("webhook_receipts") == 2
     assert not workflow.reconcile_delivery(
-        run_id="run-1", provider="mock", event_id="evt-email",
-        provider_reference=references["email"], status=MessageStatus.DELIVERED,
-        payload={"status": "delivered"}, received_at=observed,
+        run_id="run-1",
+        provider="mock",
+        event_id="evt-email",
+        provider_reference=references["email"],
+        status=MessageStatus.DELIVERED,
+        payload={"status": "delivered"},
+        received_at=observed,
     )
     assert database.count("webhook_receipts") == 2
     database.close()

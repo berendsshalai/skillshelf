@@ -95,16 +95,21 @@ class DeterministicDeliveryProvider:
     def quote(self, request: DeliveryRequest) -> DeliveryQuote:
         requested_local = request.requested_at
         starting_date = requested_local.date()
-        if not self.calendar.is_business_day(starting_date) or requested_local.timetz().replace(tzinfo=None) >= self.cutoff:
+        if (
+            not self.calendar.is_business_day(starting_date)
+            or requested_local.timetz().replace(tzinfo=None) >= self.cutoff
+        ):
             starting_date = self.calendar.next_business_day(starting_date)
         dispatch_date = self.calendar.add_business_days(starting_date, self.handling_days)
         dispatch = datetime.combine(dispatch_date, time(9, 0), tzinfo=requested_local.tzinfo)
         arrival_from = datetime.combine(
-            self.calendar.add_business_days(dispatch_date, self.transit_min), time(8, 0),
+            self.calendar.add_business_days(dispatch_date, self.transit_min),
+            time(8, 0),
             tzinfo=requested_local.tzinfo,
         )
         arrival_to = datetime.combine(
-            self.calendar.add_business_days(dispatch_date, self.transit_max), time(18, 0),
+            self.calendar.add_business_days(dispatch_date, self.transit_max),
+            time(18, 0),
             tzinfo=requested_local.tzinfo,
         )
         reference_input = (

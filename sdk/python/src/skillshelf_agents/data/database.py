@@ -117,7 +117,11 @@ class IntegrationDatabase:
         self.connection.close()
 
     def map_category(
-        self, tenant_id: str, source_system: str, source_category: str, category_id: str,
+        self,
+        tenant_id: str,
+        source_system: str,
+        source_category: str,
+        category_id: str,
     ) -> None:
         self.connection.execute(
             """INSERT INTO category_mappings VALUES(?,?,?,?,1)
@@ -128,8 +132,13 @@ class IntegrationDatabase:
         self.connection.commit()
 
     def store_raw(
-        self, tenant_id: str, source_system: str, source_record_id: str,
-        payload: dict[str, Any], headers: dict[str, str], observed_at: datetime,
+        self,
+        tenant_id: str,
+        source_system: str,
+        source_record_id: str,
+        payload: dict[str, Any],
+        headers: dict[str, str],
+        observed_at: datetime,
     ) -> tuple[int, str]:
         payload_hash = digest(payload)
         cursor = self.connection.execute(
@@ -137,8 +146,13 @@ class IntegrationDatabase:
                (tenant_id,source_system,source_record_id,observed_at,content_hash,payload,headers)
                VALUES(?,?,?,?,?,?,?)""",
             (
-                tenant_id, source_system, source_record_id, observed_at.isoformat(), payload_hash,
-                canonical_json(payload), canonical_json(headers),
+                tenant_id,
+                source_system,
+                source_record_id,
+                observed_at.isoformat(),
+                payload_hash,
+                canonical_json(payload),
+                canonical_json(headers),
             ),
         )
         if cursor.lastrowid:
@@ -154,7 +168,12 @@ class IntegrationDatabase:
         return record_id, payload_hash
 
     def quarantine(
-        self, tenant_id: str, source_record_id: str, reason: str, payload_hash: str, at: datetime,
+        self,
+        tenant_id: str,
+        source_record_id: str,
+        reason: str,
+        payload_hash: str,
+        at: datetime,
     ) -> None:
         self.connection.execute(
             """INSERT INTO quarantines
@@ -178,12 +197,23 @@ class IntegrationDatabase:
         ingested = ingested_at or datetime.now(UTC)
         external_id = str(payload.get("id", "")).strip()
         raw_id, content_hash = self.store_raw(
-            tenant_id, source_system, external_id or "missing-id", payload, {}, observed_at,
+            tenant_id,
+            source_system,
+            external_id or "missing-id",
+            payload,
+            {},
+            observed_at,
         )
         required = ("id", "name", "sku", "category", "location_id", "stock", "supplier_price", "currency")
         missing = [name for name in required if payload.get(name) in (None, "")]
         if missing:
-            self.quarantine(tenant_id, external_id or "missing-id", f"missing:{','.join(missing)}", content_hash, observed_at)
+            self.quarantine(
+                tenant_id,
+                external_id or "missing-id",
+                f"missing:{','.join(missing)}",
+                content_hash,
+                observed_at,
+            )
             return None
         mapping = self.connection.execute(
             """SELECT category_id FROM category_mappings
@@ -237,7 +267,13 @@ class IntegrationDatabase:
         with self.connection:
             self.connection.execute(
                 "INSERT OR REPLACE INTO products VALUES(?,?,?,?,?)",
-                (product.id, tenant_id, product.name, product.category_id, product.metadata.model_dump_json()),
+                (
+                    product.id,
+                    tenant_id,
+                    product.name,
+                    product.category_id,
+                    product.metadata.model_dump_json(),
+                ),
             )
             self.connection.execute(
                 "INSERT OR REPLACE INTO product_variants VALUES(?,?,?,?)",
@@ -246,27 +282,46 @@ class IntegrationDatabase:
             self.connection.execute(
                 "INSERT OR REPLACE INTO inventory_snapshots VALUES(?,?,?,?,?)",
                 (
-                    inventory.id, inventory.variant_id, inventory.location_id, inventory.quantity,
+                    inventory.id,
+                    inventory.variant_id,
+                    inventory.location_id,
+                    inventory.quantity,
                     inventory.metadata.model_dump_json(),
                 ),
             )
             self.connection.execute(
                 "INSERT OR REPLACE INTO supplier_prices VALUES(?,?,?,?,?)",
                 (
-                    supplier.id, supplier.variant_id, str(supplier.amount), supplier.currency,
+                    supplier.id,
+                    supplier.variant_id,
+                    str(supplier.amount),
+                    supplier.currency,
                     supplier.metadata.model_dump_json(),
                 ),
             )
         return NormalizedStock(
-            product=product, variant=variant, inventory=inventory, supplier_price=supplier,
+            product=product,
+            variant=variant,
+            inventory=inventory,
+            supplier_price=supplier,
         )
 
     def count(self, table: str) -> int:
         allowed = {
-            "source_records", "products", "product_variants", "inventory_snapshots",
-            "supplier_prices", "quarantines", "price_decisions", "delivery_quotes",
-            "message_intents", "message_deliveries", "webhook_receipts", "workflow_runs",
-            "workflow_steps", "workflow_events",
+            "source_records",
+            "products",
+            "product_variants",
+            "inventory_snapshots",
+            "supplier_prices",
+            "quarantines",
+            "price_decisions",
+            "delivery_quotes",
+            "message_intents",
+            "message_deliveries",
+            "webhook_receipts",
+            "workflow_runs",
+            "workflow_steps",
+            "workflow_events",
         }
         if table not in allowed:
             raise ValueError("unknown table")

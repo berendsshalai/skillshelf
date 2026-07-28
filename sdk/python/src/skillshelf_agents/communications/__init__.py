@@ -7,5 +7,9 @@ from .gateway import (
 )
 
 __all__ = [
-    "CommunicationGateway", "ConsentRecord", "MessageIntent", "MessageStatus", "MockChannelAdapter",
+    "CommunicationGateway",
+    "ConsentRecord",
+    "MessageIntent",
+    "MessageStatus",
+    "MockChannelAdapter",
 ]

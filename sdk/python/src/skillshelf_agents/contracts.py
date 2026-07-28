@@ -91,8 +91,7 @@ class SpecialistResult(BaseModel):
     def normalise_legacy_tests(cls, value: object) -> object:
         if isinstance(value, list):
             return [
-                {"command": item, "status": "passed"} if isinstance(item, str) else item
-                for item in value
+                {"command": item, "status": "passed"} if isinstance(item, str) else item for item in value
             ]
         return value
 

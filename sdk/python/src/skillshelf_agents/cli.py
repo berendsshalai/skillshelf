@@ -86,8 +86,12 @@ def ask(task: str, session: str = "default", json_output: bool = typer.Option(Fa
 
 
 @app.command("run")
-def run_agent(agent: str = typer.Option(..., "--agent"), task: str = typer.Argument(...),
-              session: str = "default", json_output: bool = typer.Option(False, "--json")) -> None:
+def run_agent(
+    agent: str = typer.Option(..., "--agent"),
+    task: str = typer.Argument(...),
+    session: str = "default",
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
     root, settings, registry = _runtime()
     registry.by_id(agent)
     runtime = SkillShelfOrchestrator(registry, AgentFactory(registry, SkillLoader(root)), settings)
@@ -104,8 +108,10 @@ def list_agents(ctx: typer.Context, json_output: bool = typer.Option(False, "--j
     if ctx.invoked_subcommand:
         return
     _, _, registry = _runtime()
-    rows = [{"id": item.id, "skill": item.skill, "model_profile": item.model_profile,
-             "mcp": item.allowed_mcp} for item in registry.agents]
+    rows = [
+        {"id": item.id, "skill": item.skill, "model_profile": item.model_profile, "mcp": item.allowed_mcp}
+        for item in registry.agents
+    ]
     _emit(rows, json_output)
 
 
@@ -126,20 +132,37 @@ def doctor(
         root, settings, registry = _runtime()
         checks.append({"check": "registry", "status": "PASS"})
         generated = root / "agents" / "generated" / "codex"
-        checks.append({"check": "generated agents", "status": "PASS" if len(list(generated.glob("*.toml"))) == 6 else "FAIL"})
-        checks.append({"check": "API configuration", "status": "PASS" if os.getenv("OPENAI_API_KEY") else "WARNING"})
+        checks.append(
+            {
+                "check": "generated agents",
+                "status": "PASS" if len(list(generated.glob("*.toml"))) == 6 else "FAIL",
+            }
+        )
+        checks.append(
+            {"check": "API configuration", "status": "PASS" if os.getenv("OPENAI_API_KEY") else "WARNING"}
+        )
         checks.append({"check": "Python", "status": "PASS", "detail": platform.python_version()})
-        checks.append({"check": "write permissions", "status": "PASS" if os.access(settings.home, os.W_OK) else "FAIL"})
+        checks.append(
+            {"check": "write permissions", "status": "PASS" if os.access(settings.home, os.W_OK) else "FAIL"}
+        )
         checks.append({"check": "GitHub CLI", "status": "PASS" if shutil.which("gh") else "WARNING"})
         mcp_health = MCPRuntime(root).health()
-        checks.append({
-            "check": "MCP policy",
-            "status": "PASS" if mcp_health and all(
-                value in {"PASS", "SKIPPED", "DEGRADED"} for value in mcp_health.values()
-            ) else "FAIL",
-            "detail": json.dumps(mcp_health, sort_keys=True),
-        })
-        checks.append({"check": "tracing sensitive data", "status": "PASS" if not settings.trace_include_sensitive else "WARNING"})
+        checks.append(
+            {
+                "check": "MCP policy",
+                "status": "PASS"
+                if mcp_health
+                and all(value in {"PASS", "SKIPPED", "DEGRADED"} for value in mcp_health.values())
+                else "FAIL",
+                "detail": json.dumps(mcp_health, sort_keys=True),
+            }
+        )
+        checks.append(
+            {
+                "check": "tracing sensitive data",
+                "status": "PASS" if not settings.trace_include_sensitive else "WARNING",
+            }
+        )
         checks.append({"check": "auto review", "status": "PASS" if not settings.auto_review else "WARNING"})
         checks.append({"check": "model profiles", "status": "PASS", "detail": settings.model})
         SessionStore(settings.home / "sessions" / "skillshelf.sqlite")
@@ -153,15 +176,31 @@ def doctor(
                 text=True,
                 shell=False,
             )
-            checks.append({"check": "version consistency", "status": "PASS" if version_check.returncode == 0 else "FAIL"})
+            checks.append(
+                {
+                    "check": "version consistency",
+                    "status": "PASS" if version_check.returncode == 0 else "FAIL",
+                }
+            )
             generation = subprocess.run(
-                [sys.executable, str(root / "scripts" / "generate-agents.py"), "--profile", "runtime", "--check"],
+                [
+                    sys.executable,
+                    str(root / "scripts" / "generate-agents.py"),
+                    "--profile",
+                    "runtime",
+                    "--check",
+                ],
                 cwd=root,
                 capture_output=True,
                 text=True,
                 shell=False,
             )
-            checks.append({"check": "agent generation drift", "status": "PASS" if generation.returncode == 0 else "FAIL"})
+            checks.append(
+                {
+                    "check": "agent generation drift",
+                    "status": "PASS" if generation.returncode == 0 else "FAIL",
+                }
+            )
             ledger = RunLedger(settings.home / "runs" / "ledger.sqlite")
             probe = f"doctor-{os.getpid()}"
             try:
@@ -179,22 +218,29 @@ def doctor(
                 checks.append({"check": "run-ledger write", "status": "FAIL", "detail": str(exc)})
             integration = IntegrationDatabase(settings.home / "operations.sqlite")
             integration.close()
-            checks.extend([
-                {"check": "connector database", "status": "PASS"},
-                {"check": "workflow database", "status": "PASS"},
-            ])
+            checks.extend(
+                [
+                    {"check": "connector database", "status": "PASS"},
+                    {"check": "workflow database", "status": "PASS"},
+                ]
+            )
             from .rag import SQLiteKnowledgeBase
+
             knowledge = SQLiteKnowledgeBase(settings.home / "rag.sqlite")
             knowledge.close()
             checks.append({"check": "RAG database", "status": "PASS"})
             from .governance import GovernanceManager
+
             recovered = GovernanceManager(settings.home, root).recover_interrupted()
-            checks.append({
-                "check": "governance interrupted-apply recovery",
-                "status": "PASS",
-                "detail": f"recovered={len(recovered)}",
-            })
+            checks.append(
+                {
+                    "check": "governance interrupted-apply recovery",
+                    "status": "PASS",
+                    "detail": f"recovered={len(recovered)}",
+                }
+            )
             from .contracts import SpecialistResult
+
             SpecialistResult(
                 agent_id="doctor",
                 status="completed",
@@ -204,6 +250,7 @@ def doctor(
             checks.append({"check": "actual structured-output support", "status": "PASS"})
             from .runtime import RuntimeContext
             from .sessions.identity import repository_identity
+
             context = RuntimeContext(
                 run_id=probe,
                 trace_id=probe,
@@ -224,19 +271,25 @@ def doctor(
             )
             interrupted = not approvals.is_granted(approval.approval_id)
             approvals.reject(approval.approval_id, approving_user="doctor")
-            checks.append({
-                "check": "write approval interruption",
-                "status": "PASS" if interrupted else "FAIL",
-            })
+            checks.append(
+                {
+                    "check": "write approval interruption",
+                    "status": "PASS" if interrupted else "FAIL",
+                }
+            )
             from agents.tool_context import ToolContext
             from .tools.artefacts import ArtifactStore
             from .tools.filesystem import RepositoryFilesystem
             from .tools.subprocess import SafeCommandExecutor
+
             tool_registry = CapabilityToolRegistry(
                 filesystem=RepositoryFilesystem(root, settings.home / "backups" / "doctor"),
                 commands=SafeCommandExecutor(root, ArtifactStore(settings.home / "artifacts")),
             )
-            read_tool = next(item for item in tool_registry.build(["read_files"]) if item.name == "read_text_file")
+            read_tool = next(
+                item for item in tool_registry.build(["read_files"]) if item.name == "read_text_file"
+            )
+
             async def invoke_read_tool() -> Any:
                 return await read_tool.on_invoke_tool(
                     ToolContext(
@@ -247,38 +300,47 @@ def doctor(
                     ),
                     '{"path":"VERSION"}',
                 )
+
             tool_output: Any = asyncio.run(invoke_read_tool())
-            checks.append({
-                "check": "actual function-tool call",
-                "status": "PASS" if version in str(tool_output) else "FAIL",
-            })
+            checks.append(
+                {
+                    "check": "actual function-tool call",
+                    "status": "PASS" if version in str(tool_output) else "FAIL",
+                }
+            )
             manager = UnifiedSessionManager(settings.home / "sessions" / "skillshelf.sqlite")
             session_probe = f"{probe}-session"
             manager.create_with_id(session_probe, repository_identity=context.repository_identity)
+
             async def session_round_trip() -> bool:
                 sdk_session = manager.sdk_session(session_probe)
                 await sdk_session.add_items([{"role": "user", "content": "doctor probe"}])
                 before = await sdk_session.get_items()
                 await manager.delete(session_probe, confirmed=True)
                 return bool(before) and manager.verify_deleted(session_probe)
+
             session_ok = asyncio.run(session_round_trip())
-            checks.append({
-                "check": "session write/read/delete",
-                "status": "PASS" if session_ok else "FAIL",
-            })
-            checks.extend([
+            checks.append(
                 {
-                    "check": "actual model/master/specialist invocation",
-                    "status": "SKIPPED" if not credentialed else "DEGRADED",
-                    "detail": "Use a credentialled evaluation fixture; doctor never makes an implicit paid call.",
-                },
-                {
-                    "check": "actual MCP connection/discovery/read",
-                    "status": "SKIPPED",
-                    "detail": "No required local MCP provider was connected during this diagnostic.",
-                },
-                {"check": "optional provider readiness", "status": "SKIPPED"},
-            ])
+                    "check": "session write/read/delete",
+                    "status": "PASS" if session_ok else "FAIL",
+                }
+            )
+            checks.extend(
+                [
+                    {
+                        "check": "actual model/master/specialist invocation",
+                        "status": "SKIPPED" if not credentialed else "DEGRADED",
+                        "detail": "Use a credentialled evaluation fixture; doctor never makes an implicit paid call.",
+                    },
+                    {
+                        "check": "actual MCP connection/discovery/read",
+                        "status": "SKIPPED",
+                        "detail": "No required local MCP provider was connected during this diagnostic.",
+                    },
+                    {"check": "optional provider readiness", "status": "SKIPPED"},
+                ]
+            )
         del registry
     except Exception as exc:
         checks.append({"check": "startup", "status": "FAIL", "detail": str(exc)})
@@ -288,8 +350,13 @@ def doctor(
 
 
 @usage_app.callback(invoke_without_command=True)
-def usage(ctx: typer.Context, last: bool = False, session: str | None = None, agent: str | None = None,
-          json_output: bool = typer.Option(False, "--json")) -> None:
+def usage(
+    ctx: typer.Context,
+    last: bool = False,
+    session: str | None = None,
+    agent: str | None = None,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
     if ctx.invoked_subcommand:
         return
     _, settings, _ = _runtime()
@@ -376,8 +443,10 @@ def mcp_permissions(agent: str) -> None:
 @app.command()
 def improve() -> None:
     _, settings, _ = _runtime()
-    console.print(f"Auto-review is off. Observations: {len(list((settings.home / 'events').glob('*.jsonl')))}. "
-                  "Use a reviewed proposal; live skills are never mutated automatically.")
+    console.print(
+        f"Auto-review is off. Observations: {len(list((settings.home / 'events').glob('*.jsonl')))}. "
+        "Use a reviewed proposal; live skills are never mutated automatically."
+    )
 
 
 @proposals_app.callback(invoke_without_command=True)
@@ -411,8 +480,12 @@ def proposal_reject(proposal_id: str, yes: bool = typer.Option(False, "--yes")) 
 @proposals_app.command("approve")
 def proposal_approve(proposal_id: str, yes: bool = typer.Option(False, "--yes")) -> None:
     root, settings, _ = _runtime()
+
     def evaluator(_skill: str) -> bool:
-        return subprocess.run([os.fspath(Path(sys.executable)), "-m", "pytest", "-q"], cwd=root).returncode == 0
+        return (
+            subprocess.run([os.fspath(Path(sys.executable)), "-m", "pytest", "-q"], cwd=root).returncode == 0
+        )
+
     ProposalStore(settings.home, root).approve(proposal_id, confirmed=yes, evaluator=evaluator)
 
 
@@ -449,7 +522,9 @@ def _run_ledger() -> RunLedger:
 
 
 @runs_app.command("list")
-def runs_list(limit: int = typer.Option(100, min=1, max=1000), json_output: bool = typer.Option(False, "--json")) -> None:
+def runs_list(
+    limit: int = typer.Option(100, min=1, max=1000), json_output: bool = typer.Option(False, "--json")
+) -> None:
     _emit([item.model_dump(mode="json") for item in _run_ledger().list_runs(limit=limit)], json_output)
 
 
@@ -461,27 +536,35 @@ def runs_inspect(run_id: str, json_output: bool = typer.Option(False, "--json"))
 @runs_app.command("artifacts")
 def runs_artifacts(run_id: str, json_output: bool = typer.Option(False, "--json")) -> None:
     record = _run_ledger().inspect_run(run_id)
-    _emit([
-        {"tool_call_id": item.tool_call_id, "output_digest": item.output_digest}
-        for item in record.tool_calls if item.output_digest
-    ], json_output)
+    _emit(
+        [
+            {"tool_call_id": item.tool_call_id, "output_digest": item.output_digest}
+            for item in record.tool_calls
+            if item.output_digest
+        ],
+        json_output,
+    )
 
 
 @runs_app.command("cancel")
 def runs_cancel(run_id: str) -> None:
     from .ledger.models import RunStatus
+
     _run_ledger().transition(run_id, RunStatus.CANCELLED)
 
 
 @runs_app.command("replay")
 def runs_replay(run_id: str) -> None:
     record = _run_ledger().inspect_run(run_id)
-    _emit({
-        "status": "approval_required",
-        "original_run_id": run_id,
-        "canonical_input": record.canonical_input,
-        "reason": "Replay creates a linked run and never replays outbound communications automatically.",
-    }, False)
+    _emit(
+        {
+            "status": "approval_required",
+            "original_run_id": run_id,
+            "canonical_input": record.canonical_input,
+            "reason": "Replay creates a linked run and never replays outbound communications automatically.",
+        },
+        False,
+    )
 
 
 @events_app.command("tail")
@@ -511,10 +594,13 @@ def _connector_directory() -> Path:
 
 @connector_app.command("list")
 def connector_list() -> None:
-    _emit([
-        json.loads(path.read_text(encoding="utf-8"))
-        for path in sorted(_connector_directory().glob("*.json"))
-    ], False)
+    _emit(
+        [
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in sorted(_connector_directory().glob("*.json"))
+        ],
+        False,
+    )
 
 
 @connector_app.command("add")
@@ -600,7 +686,8 @@ def workflow_dead_letter() -> None:
     database = _operations_database()
     try:
         rows = [
-            dict(row) for row in database.connection.execute(
+            dict(row)
+            for row in database.connection.execute(
                 "SELECT id,workflow_id,state,updated_at FROM workflow_runs WHERE state='DEAD_LETTERED'"
             )
         ]

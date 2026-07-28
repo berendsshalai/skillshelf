@@ -20,16 +20,10 @@ def _write_package(path: Path, *, marker: str = "original") -> None:
     )
     (path / "README.md").write_text(f"demo package: {marker}\n", encoding="utf-8")
     (path / "PROVENANCE.yml").write_text("origin: test\n", encoding="utf-8")
-    (path / "SEMANTIC_CONTRACT.yml").write_text(
-        "contract: stable\n", encoding="utf-8"
-    )
+    (path / "SEMANTIC_CONTRACT.yml").write_text("contract: stable\n", encoding="utf-8")
     (path / "UPSTREAM_DIFF.md").write_text("No upstream diff.\n", encoding="utf-8")
-    (path / "references" / "rules.md").write_text(
-        "Preserve complete packages.\n", encoding="utf-8"
-    )
-    (path / "scripts" / "check.py").write_text(
-        "print('checked')\n", encoding="utf-8"
-    )
+    (path / "references" / "rules.md").write_text("Preserve complete packages.\n", encoding="utf-8")
+    (path / "scripts" / "check.py").write_text("print('checked')\n", encoding="utf-8")
     (path / "assets" / "marker.txt").write_text(marker, encoding="utf-8")
     (path / "tests" / "test_marker.txt").write_text(marker, encoding="utf-8")
 
@@ -48,9 +42,7 @@ def _stage(
     source_digest = manager.source_digest("demo")
 
     def mutate(package: Path) -> None:
-        (package / "README.md").write_text(
-            "demo package: improved\n", encoding="utf-8"
-        )
+        (package / "README.md").write_text("demo package: improved\n", encoding="utf-8")
         (package / "references" / "rules.md").write_text(
             "Preserve complete packages and verify recovery.\n",
             encoding="utf-8",
@@ -77,18 +69,14 @@ def _approve(manager: GovernanceManager, proposal_id: str) -> Approval:
         semantic=lambda _: (True, "semantics preserved"),
         integration=lambda _: (True, "integration passed"),
     )
-    return manager.approve(
-        proposal_id, approved_by="test-approver", confirmed=True
-    )
+    return manager.approve(proposal_id, approved_by="test-approver", confirmed=True)
 
 
 @pytest.mark.parametrize(
     "proposal_id",
     ["../escape", "proposal-../../escape", "PROPOSAL-unsafe", "proposal-short"],
 )
-def test_rejects_unsafe_proposal_ids(
-    manager: GovernanceManager, proposal_id: str
-) -> None:
+def test_rejects_unsafe_proposal_ids(manager: GovernanceManager, proposal_id: str) -> None:
     with pytest.raises(GovernanceError, match="unsafe proposal ID"):
         manager.stage(
             proposal_id=proposal_id,
@@ -219,9 +207,7 @@ def test_apply_requires_exact_stored_approval_binding(
 
 
 @pytest.mark.parametrize("phase", ["LIVE_MOVED", "SWAPPED"])
-def test_injected_swap_failure_recovers_original_package(
-    manager: GovernanceManager, phase: str
-) -> None:
+def test_injected_swap_failure_recovers_original_package(manager: GovernanceManager, phase: str) -> None:
     proposal_id = f"proposal-fail{phase.lower().replace('_', '')}"
     source_digest, _ = _stage(manager, proposal_id)
     approval = _approve(manager, proposal_id)
@@ -235,9 +221,7 @@ def test_injected_swap_failure_recovers_original_package(
 
     assert manager.source_digest("demo") == source_digest
     assert manager.inspect(proposal_id).status == "RECOVERED"
-    journal = json.loads(
-        (manager.journals / f"{proposal_id}.json").read_text(encoding="utf-8")
-    )
+    journal = json.loads((manager.journals / f"{proposal_id}.json").read_text(encoding="utf-8"))
     assert journal["phase"] == "RECOVERED"
     assert not Path(str(journal["old_path"])).exists()
     assert not Path(str(journal["candidate_path"])).exists()
@@ -285,9 +269,7 @@ def test_successful_apply_preserves_complete_backup_and_can_rollback(
     assert rolled_back.status == "ROLLED_BACK"
     assert rolled_back.final_digest == source_digest
     assert package_digest(live) == source_digest
-    journal = json.loads(
-        (manager.journals / f"{proposal_id}.json").read_text(encoding="utf-8")
-    )
+    journal = json.loads((manager.journals / f"{proposal_id}.json").read_text(encoding="utf-8"))
     assert journal["phase"] == "ROLLED_BACK"
 
 

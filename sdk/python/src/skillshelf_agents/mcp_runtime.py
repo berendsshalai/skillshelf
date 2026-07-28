@@ -92,9 +92,7 @@ class MCPRuntime:
                 require_approval=False,
                 startup_timeout_seconds=float(item.get("startup_timeout_seconds", 15)),
                 call_timeout_seconds=float(item.get("call_timeout_seconds", 30)),
-                client_session_timeout_seconds=float(
-                    item.get("client_session_timeout_seconds", 5)
-                ),
+                client_session_timeout_seconds=float(item.get("client_session_timeout_seconds", 5)),
             )
         else:
             raise ValueError(f"{name}: unsupported MCP transport {transport!r}")
@@ -180,11 +178,7 @@ class MCPRuntime:
                 elif self._connection_error is not None:
                     result[name] = "DEGRADED"
                 else:
-                    result[name] = (
-                        "SKIPPED"
-                        if "optional" in item.installation_status
-                        else "DEGRADED"
-                    )
+                    result[name] = "SKIPPED" if "optional" in item.installation_status else "DEGRADED"
             elif item.installation_status in {"built-in", "host-provided"}:
                 result[name] = "PASS"
             else:

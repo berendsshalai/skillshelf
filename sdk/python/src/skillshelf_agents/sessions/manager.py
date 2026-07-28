@@ -137,15 +137,9 @@ class UnifiedSessionManager:
                 "DELETE FROM skillshelf_session_artifacts WHERE session_id=? AND retained=0",
                 (session_id,),
             )
-            connection.execute(
-                "DELETE FROM skillshelf_replay_checkpoints WHERE session_id=?", (session_id,)
-            )
-            connection.execute(
-                "DELETE FROM skillshelf_pending_approvals WHERE session_id=?", (session_id,)
-            )
-            connection.execute(
-                "DELETE FROM skillshelf_session_metadata WHERE session_id=?", (session_id,)
-            )
+            connection.execute("DELETE FROM skillshelf_replay_checkpoints WHERE session_id=?", (session_id,))
+            connection.execute("DELETE FROM skillshelf_pending_approvals WHERE session_id=?", (session_id,))
+            connection.execute("DELETE FROM skillshelf_session_metadata WHERE session_id=?", (session_id,))
             connection.commit()
         if not self.verify_deleted(session_id):
             raise RuntimeError("session deletion verification failed")

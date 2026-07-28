@@ -129,7 +129,11 @@ class RESTConnector:
         return float(min(base + jitter, self.manifest.retry_policy.maximum_delay_seconds))
 
     def _request(
-        self, resource: ResourceDefinition, url: str, params: dict[str, Any], headers: dict[str, str],
+        self,
+        resource: ResourceDefinition,
+        url: str,
+        params: dict[str, Any],
+        headers: dict[str, str],
     ) -> httpx.Response:
         policy = self.manifest.retry_policy
         if self._circuit_opened_at is not None:
@@ -193,10 +197,14 @@ class RESTConnector:
             response = self._request(resource, next_url, request_params, headers)
             request_count += 1
             status_code = response.status_code
-            self.request_log.append({
-                "method": resource.method, "url": next_url,
-                "status": status_code, "headers": sorted(key for key in headers if key.lower() != "authorization"),
-            })
+            self.request_log.append(
+                {
+                    "method": resource.method,
+                    "url": next_url,
+                    "status": status_code,
+                    "headers": sorted(key for key in headers if key.lower() != "authorization"),
+                }
+            )
             if status_code == 304:
                 return RESTResult((), status_code, pages, self._etags.get(resource_id), True, request_count)
             response.raise_for_status()

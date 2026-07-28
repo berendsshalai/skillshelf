@@ -62,8 +62,12 @@ class SQLiteKnowledgeBase:
             self.connection.execute(
                 "INSERT OR REPLACE INTO knowledge_documents VALUES(?,?,?,?,?,?)",
                 (
-                    document_id, source, version, effective_at.isoformat(),
-                    ingested_at.isoformat(), content_hash,
+                    document_id,
+                    source,
+                    version,
+                    effective_at.isoformat(),
+                    ingested_at.isoformat(),
+                    content_hash,
                 ),
             )
             for section in sorted(sections):

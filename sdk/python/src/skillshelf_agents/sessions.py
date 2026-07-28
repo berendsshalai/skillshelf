@@ -17,7 +17,9 @@ class SessionStore:
         path.parent.mkdir(parents=True, exist_ok=True)
         self.path = path
         with sqlite3.connect(path) as db:
-            db.execute("CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, state TEXT NOT NULL DEFAULT '{}')")
+            db.execute(
+                "CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, state TEXT NOT NULL DEFAULT '{}')"
+            )
 
     def ensure(self, session_id: str) -> None:
         with sqlite3.connect(self.path) as db:

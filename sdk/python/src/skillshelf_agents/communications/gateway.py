@@ -39,8 +39,12 @@ ORDER = {
     MessageStatus.REPLIED: 7,
 }
 TERMINAL_FAILURES = {
-    MessageStatus.FAILED, MessageStatus.REJECTED, MessageStatus.EXPIRED,
-    MessageStatus.UNSUBSCRIBED, MessageStatus.BOUNCED, MessageStatus.NO_ANSWER,
+    MessageStatus.FAILED,
+    MessageStatus.REJECTED,
+    MessageStatus.EXPIRED,
+    MessageStatus.UNSUBSCRIBED,
+    MessageStatus.BOUNCED,
+    MessageStatus.NO_ANSWER,
 }
 
 
@@ -112,8 +116,13 @@ class CommunicationGateway:
         self.database.connection.execute(
             "INSERT OR REPLACE INTO consents VALUES(?,?,?,?,?,?,?,?)",
             (
-                consent.id, consent.tenant_id, consent.customer_id, consent.purpose, consent.channel,
-                int(consent.granted), consent.expires_at.isoformat() if consent.expires_at else None,
+                consent.id,
+                consent.tenant_id,
+                consent.customer_id,
+                consent.purpose,
+                consent.channel,
+                int(consent.granted),
+                consent.expires_at.isoformat() if consent.expires_at else None,
                 consent.model_dump_json(),
             ),
         )
@@ -139,7 +148,11 @@ class CommunicationGateway:
         return consent
 
     def send(
-        self, intent: MessageIntent, *, authority: set[str], now: datetime,
+        self,
+        intent: MessageIntent,
+        *,
+        authority: set[str],
+        now: datetime,
     ) -> dict[str, str]:
         if "send_customer_message" not in authority:
             raise PermissionError("workflow lacks outbound communication authority")
@@ -183,8 +196,12 @@ class CommunicationGateway:
             self.database.connection.execute(
                 "INSERT INTO message_deliveries VALUES(?,?,?,?,?,?)",
                 (
-                    delivery_id, intent.message_id, channel, provider_reference,
-                    MessageStatus.ACCEPTED_BY_PROVIDER, canonical_json(payload),
+                    delivery_id,
+                    intent.message_id,
+                    channel,
+                    provider_reference,
+                    MessageStatus.ACCEPTED_BY_PROVIDER,
+                    canonical_json(payload),
                 ),
             )
             results[channel] = provider_reference
@@ -235,14 +252,19 @@ class CommunicationGateway:
             statuses = {
                 MessageStatus(item[0])
                 for item in self.database.connection.execute(
-                    "SELECT status FROM message_deliveries WHERE message_id=?", (row["message_id"],),
+                    "SELECT status FROM message_deliveries WHERE message_id=?",
+                    (row["message_id"],),
                 )
             }
             intent_status = min(statuses, key=lambda value: ORDER.get(value, 99))
-            if statuses and all(value in {MessageStatus.DELIVERED, MessageStatus.READ, MessageStatus.REPLIED} for value in statuses):
+            if statuses and all(
+                value in {MessageStatus.DELIVERED, MessageStatus.READ, MessageStatus.REPLIED}
+                for value in statuses
+            ):
                 intent_status = MessageStatus.DELIVERED
             self.database.connection.execute(
-                "UPDATE message_intents SET status=? WHERE id=?", (intent_status, row["message_id"]),
+                "UPDATE message_intents SET status=? WHERE id=?",
+                (intent_status, row["message_id"]),
             )
         self.database.connection.commit()
         return should_apply
