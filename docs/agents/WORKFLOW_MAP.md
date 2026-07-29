@@ -4,8 +4,14 @@
 
 The workflow map is the maintained visual contract for SkillShelf's user-facing
 agent runtime. It describes both the Codex-native runtime and the OpenAI Agents
-SDK manager pattern. The SVGs are canonical README assets; the Mermaid source
-is the editable logical model.
+SDK manager pattern. The concise overview is embedded in the README. The
+[detailed workflow diagram](../assets/skillshelf-agent-workflow.svg) expands
+every specialist's input, process, and output contract.
+
+All diagram formats are generated from [`agents/registry.yml`](../../agents/registry.yml)
+through the [canonical JSON specification](../diagrams/skillshelf-agent-workflow.json).
+The [Mermaid source](../diagrams/skillshelf-agent-workflow.mmd), overview SVGs,
+and full SVGs are generated artifacts rather than independent sources of truth.
 
 ## Why the orchestrator is central
 
@@ -177,4 +183,6 @@ the implementation specialist only after they return to the master.
 - [OpenAI Agents SDK runtime](SDK.md)
 - [MCP architecture and authority](../../ARCHITECTURE.md#mcp-and-authority)
 - [Evaluations](EVALUATIONS.md)
-- [Editable Mermaid source](../diagrams/skillshelf-agent-workflow.mmd)
+- [Canonical workflow JSON](../diagrams/skillshelf-agent-workflow.json)
+- [Generated Mermaid source](../diagrams/skillshelf-agent-workflow.mmd)
+- [Detailed workflow diagram](../assets/skillshelf-agent-workflow.svg)

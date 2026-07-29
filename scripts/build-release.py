@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -14,6 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 VERSION = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
 DIST = ROOT / "dist" / f"skillshelf-{VERSION}"
 EXCLUDED_PARTS = {".git", ".venv", "__pycache__", "dist", "work", "upstream"}
+LOCK_PATHS = (
+    Path("sdk/python/requirements.lock"),
+    Path("sdk/python/requirements.lock.sha256"),
+    Path("upstream-lock.json"),
+    Path("vendor-manifest.json"),
+)
 
 
 def sha256(path: Path) -> str:
@@ -44,6 +51,81 @@ def zip_paths(destination: Path, paths: list[Path]) -> None:
 
 def run(command: list[str]) -> None:
     subprocess.run(command, cwd=ROOT, check=True)
+
+
+def spdx_id(value: str) -> str:
+    return "SPDXRef-" + re.sub(r"[^A-Za-z0-9.-]+", "-", value).strip("-")
+
+
+def locked_python_packages() -> list[dict[str, object]]:
+    packages: list[dict[str, object]] = []
+    pattern = re.compile(r"^([A-Za-z0-9_.-]+)==([^;\s]+)")
+    for line in (
+        (ROOT / "sdk/python/requirements.lock").read_text(encoding="utf-8").splitlines()
+    ):
+        match = pattern.match(line)
+        if not match:
+            continue
+        name, version = match.groups()
+        packages.append(
+            {
+                "name": name,
+                "SPDXID": spdx_id(f"Python-{name}-{version}"),
+                "versionInfo": version,
+                "downloadLocation": "NOASSERTION",
+                "filesAnalyzed": False,
+                "licenseConcluded": "NOASSERTION",
+                "externalRefs": [
+                    {
+                        "referenceCategory": "PACKAGE-MANAGER",
+                        "referenceType": "purl",
+                        "referenceLocator": f"pkg:pypi/{name.lower()}@{version}",
+                    }
+                ],
+            }
+        )
+    return packages
+
+
+def pinned_upstream_packages() -> list[dict[str, object]]:
+    lock = json.loads((ROOT / "upstream-lock.json").read_text(encoding="utf-8"))
+    packages: list[dict[str, object]] = []
+    for index, source in enumerate(lock["sources"], start=1):
+        repository = str(source["repository"])
+        name = repository.rstrip("/").rsplit("/", 1)[-1]
+        commit = str(source["commit"])
+        packages.append(
+            {
+                "name": name,
+                "SPDXID": spdx_id(f"Upstream-{index}-{name}"),
+                "versionInfo": commit,
+                "downloadLocation": repository,
+                "filesAnalyzed": False,
+                "licenseConcluded": str(source["license"]),
+                "supplier": "NOASSERTION",
+            }
+        )
+    return packages
+
+
+def git_build_state() -> dict[str, object]:
+    commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    dirty = bool(
+        subprocess.run(
+            ["git", "status", "--porcelain"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout.strip()
+    )
+    return {"commit": commit, "dirty": dirty}
 
 
 def main() -> int:
@@ -85,6 +167,7 @@ def main() -> int:
         ROOT / "scripts" / "uninstall-agent-runtime.sh",
         ROOT / "docs" / "agents",
         ROOT / "docs" / "integrations",
+        ROOT / "docs" / "security",
         ROOT / "LICENSE",
         ROOT / "THIRD_PARTY_NOTICES.md",
         ROOT / "VERSION",
@@ -95,8 +178,19 @@ def main() -> int:
     zip_paths(source, [path for path in ROOT.iterdir() if allowed(path)])
 
     artifact_files = sorted(
-        path for path in DIST.iterdir() if path.is_file() and path.name not in {"SHA256SUMS", "SBOM.spdx.json"}
+        path
+        for path in DIST.iterdir()
+        if path.is_file() and path.name not in {"SHA256SUMS", "SBOM.spdx.json"}
     )
+    root_package = {
+        "name": "skillshelf",
+        "SPDXID": "SPDXRef-Package-SkillShelf",
+        "versionInfo": VERSION,
+        "downloadLocation": "NOASSERTION",
+        "filesAnalyzed": False,
+        "licenseConcluded": "MIT",
+    }
+    dependency_packages = locked_python_packages() + pinned_upstream_packages()
     sbom = {
         "spdxVersion": "SPDX-2.3",
         "dataLicense": "CC0-1.0",
@@ -107,43 +201,66 @@ def main() -> int:
             "created": datetime.now(UTC).isoformat(),
             "creators": ["Tool: SkillShelf build-release.py"],
         },
-        "packages": [
-            {
-                "name": "skillshelf",
-                "SPDXID": "SPDXRef-Package-SkillShelf",
-                "versionInfo": VERSION,
-                "downloadLocation": "NOASSERTION",
-                "filesAnalyzed": False,
-                "licenseConcluded": "MIT",
-            }
-        ],
+        "packages": [root_package, *dependency_packages],
         "relationships": [
             {
                 "spdxElementId": "SPDXRef-DOCUMENT",
                 "relationshipType": "DESCRIBES",
                 "relatedSpdxElement": "SPDXRef-Package-SkillShelf",
-            }
+            },
+            *[
+                {
+                    "spdxElementId": "SPDXRef-Package-SkillShelf",
+                    "relationshipType": "DEPENDS_ON",
+                    "relatedSpdxElement": package["SPDXID"],
+                }
+                for package in dependency_packages
+            ],
         ],
     }
-    (DIST / "SBOM.spdx.json").write_text(json.dumps(sbom, indent=2) + "\n", encoding="utf-8")
+    (DIST / "SBOM.spdx.json").write_text(
+        json.dumps(sbom, indent=2) + "\n", encoding="utf-8"
+    )
     artifact_files.append(DIST / "SBOM.spdx.json")
+    dependency_locks = [
+        {
+            "uri": path.as_posix(),
+            "digest": {"sha256": sha256(ROOT / path)},
+        }
+        for path in LOCK_PATHS
+    ]
     provenance = {
         "_type": "https://in-toto.io/Statement/v1",
-        "subject": [{"name": path.name, "digest": {"sha256": sha256(path)}} for path in artifact_files],
+        "subject": [
+            {"name": path.name, "digest": {"sha256": sha256(path)}}
+            for path in artifact_files
+        ],
         "predicateType": "https://slsa.dev/provenance/v1",
         "predicate": {
             "buildDefinition": {
                 "buildType": "https://github.com/berendsshalai/skillshelf/build-release/v1",
-                "externalParameters": {"version": VERSION},
-                "resolvedDependencies": [],
+                "externalParameters": {
+                    "version": VERSION,
+                    "source": git_build_state(),
+                    "python": sys.version.split()[0],
+                },
+                "resolvedDependencies": dependency_locks,
             },
-            "runDetails": {"builder": {"id": "scripts/build-release.py"}},
+            "runDetails": {
+                "builder": {"id": "scripts/build-release.py"},
+                "metadata": {"invocationId": datetime.now(UTC).isoformat()},
+            },
         },
     }
     provenance_path = DIST / "provenance-attestation.json"
-    provenance_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+    provenance_path.write_text(
+        json.dumps(provenance, indent=2) + "\n", encoding="utf-8"
+    )
     artifact_files.append(provenance_path)
-    sums = "\n".join(f"{sha256(path)}  {path.name}" for path in sorted(artifact_files)) + "\n"
+    sums = (
+        "\n".join(f"{sha256(path)}  {path.name}" for path in sorted(artifact_files))
+        + "\n"
+    )
     (DIST / "SHA256SUMS").write_text(sums, encoding="utf-8")
     run(
         [
@@ -154,7 +271,15 @@ def main() -> int:
             VERSION,
         ]
     )
-    print(json.dumps({"version": VERSION, "directory": str(DIST), "artifacts": sorted(p.name for p in DIST.iterdir())}))
+    print(
+        json.dumps(
+            {
+                "version": VERSION,
+                "directory": str(DIST),
+                "artifacts": sorted(p.name for p in DIST.iterdir()),
+            }
+        )
+    )
     return 0
 
 

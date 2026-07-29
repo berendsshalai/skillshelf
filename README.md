@@ -53,12 +53,12 @@ final response.
 <picture>
   <source
     media="(prefers-color-scheme: dark)"
-    srcset="./docs/assets/skillshelf-agent-workflow-dark.svg">
+    srcset="./docs/assets/skillshelf-agent-workflow-overview-dark.svg">
   <source
     media="(prefers-color-scheme: light)"
-    srcset="./docs/assets/skillshelf-agent-workflow.svg">
+    srcset="./docs/assets/skillshelf-agent-workflow-overview.svg">
   <img
-    src="./docs/assets/skillshelf-agent-workflow.svg"
+    src="./docs/assets/skillshelf-agent-workflow-overview.svg"
     alt="SkillShelf agent workflow showing a user request entering the central SkillShelf Master orchestrator, routing to five bounded specialist agents, and every specialist returning structured evidence to the orchestrator before the final response."
     width="100%">
 </picture>

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, Literal
 
 import yaml
 from pydantic import BaseModel, Field, model_validator
@@ -13,11 +14,35 @@ OUTPUT_CONTRACTS = {
     "OrchestratorResult": OrchestratorResult,
 }
 WRITE_CAPABILITIES = {"write_project_files", "write_observation_log", "create_staged_update"}
+LEGACY_CAPABILITY_PROVIDERS: dict[str, list[str]] = {
+    "search_sources": ["search_sources", "github-read", "skill-registry-read", "web-read"],
+    "search_memory_index": ["search_memory_index", "skillshelf-memory"],
+    "inspect_memory_timeline": ["inspect_memory_timeline", "skillshelf-memory"],
+    "fetch_selected_observations": ["fetch_selected_observations", "skillshelf-memory"],
+    "inspect_browser": ["inspect_browser", "browser-read"],
+    "capture_screenshots": ["capture_screenshots", "browser-read"],
+    "write_observation_log": ["write_observation_log", "filesystem-governance"],
+    "create_staged_update": ["create_staged_update", "filesystem-governance"],
+    "read_agent_events": ["read_agent_events", "filesystem-governance"],
+}
 
 
 class TokenBudget(BaseModel):
     input: int = Field(gt=0)
     output: int = Field(gt=0)
+
+
+class CapabilityPolicy(BaseModel):
+    id: str = Field(min_length=1)
+    required: bool = True
+    providers: list[str] = Field(default_factory=list)
+    degraded_behavior: Literal["fail", "report"] = "fail"
+
+    @model_validator(mode="after")
+    def consistent(self) -> "CapabilityPolicy":
+        if self.required and self.degraded_behavior != "fail":
+            raise ValueError("required capabilities must use degraded_behavior: fail")
+        return self
 
 
 class MasterDefinition(BaseModel):
@@ -44,8 +69,30 @@ class AgentDefinition(BaseModel):
     tool_description: str
     allowed_mcp: list[str]
     allowed_capabilities: list[str]
+    capability_policy: dict[str, CapabilityPolicy] = Field(default_factory=dict)
     prohibited_capabilities: list[str]
     token_budget: TokenBudget
+
+    @model_validator(mode="before")
+    @classmethod
+    def migrate_capabilities(cls, value: Any) -> Any:
+        if not isinstance(value, dict):
+            return value
+        data = dict(value)
+        raw = data.get("capabilities", data.get("allowed_capabilities", []))
+        identifiers: list[str] = []
+        policies = dict(data.get("capability_policy", {}))
+        for item in raw:
+            if isinstance(item, str):
+                identifiers.append(item)
+                continue
+            policy = CapabilityPolicy.model_validate(item)
+            identifiers.append(policy.id)
+            policies[policy.id] = policy.model_dump()
+        data["allowed_capabilities"] = identifiers
+        data["capability_policy"] = policies
+        data.pop("capabilities", None)
+        return data
 
     @model_validator(mode="after")
     def bounded(self) -> "AgentDefinition":
@@ -53,7 +100,27 @@ class AgentDefinition(BaseModel):
             raise ValueError("unrestricted tool surfaces are forbidden")
         if WRITE_CAPABILITIES.intersection(self.allowed_capabilities) and not self.prohibited_capabilities:
             raise ValueError("write capability requires explicit prohibitions")
+        unknown = set(self.capability_policy) - set(self.allowed_capabilities)
+        if unknown:
+            raise ValueError(f"capability policy references undeclared capabilities: {sorted(unknown)}")
         return self
+
+    @property
+    def capability_policies(self) -> list[CapabilityPolicy]:
+        return [self.capability_policy_for(item) for item in self.allowed_capabilities]
+
+    def capability_policy_for(self, capability: str) -> CapabilityPolicy:
+        if capability not in self.allowed_capabilities:
+            raise KeyError(capability)
+        configured = self.capability_policy.get(capability)
+        if configured is not None:
+            return configured
+        return CapabilityPolicy(
+            id=capability,
+            required=True,
+            providers=LEGACY_CAPABILITY_PROVIDERS.get(capability, [capability]),
+            degraded_behavior="fail",
+        )
 
 
 class RuntimeRegistry(BaseModel):

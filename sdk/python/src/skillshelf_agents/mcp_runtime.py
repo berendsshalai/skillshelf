@@ -31,7 +31,13 @@ class MCPServerDefinition:
     installation_status: str
     adapter: str | None
     secret_references: tuple[str, ...]
+    required_by: tuple[str, ...]
     operational: OperationalMCPServerDefinition | None
+
+    def required_for(self, agent_id: str) -> bool:
+        if agent_id not in self.required_by:
+            return False
+        return "optional" not in self.installation_status.casefold()
 
 
 class MCPRuntime:
@@ -45,6 +51,7 @@ class MCPRuntime:
         self._tool_cache: dict[str, tuple[str, ...]] = {}
         self._connected = False
         self._connection_error: str | None = None
+        self._run_managers: list[MCPManager] = []
 
         for item in raw["servers"]:
             definition = self._definition(item)
@@ -102,6 +109,7 @@ class MCPRuntime:
             for reference in item.get("secret_references", ())
             if isinstance(reference, dict) and "environment" in reference
         )
+        required_by = tuple(str(value) for value in item.get("required_by", ()))
         return MCPServerDefinition(
             name=name,
             transport=transport,
@@ -112,6 +120,7 @@ class MCPRuntime:
             installation_status=str(item.get("installation_status", "optional")),
             adapter=str(adapter) if adapter is not None else None,
             secret_references=references,
+            required_by=required_by,
             operational=operational,
         )
 
@@ -169,6 +178,25 @@ class MCPRuntime:
             self._connection_error = None
             self._connected = True
 
+    async def connect_assigned(self, server_name: str) -> tuple[list[Any], list[str]]:
+        """Connect one local server in an isolated run-scoped manager."""
+        definition = self.servers[server_name]
+        if definition.operational is None:
+            raise ValueError(f"{server_name!r} is host-provided and cannot connect locally")
+        manager = MCPManager()
+        manager.register(definition.operational)
+        try:
+            await manager.connect_all()
+            tools = await manager.list_tools()
+        except BaseException:
+            try:
+                await manager.cleanup()
+            except BaseException:
+                pass
+            raise
+        self._run_managers.append(manager)
+        return manager.servers, [item.exposed_name for item in tools]
+
     def health(self) -> dict[str, str]:
         result: dict[str, str] = {}
         for name, item in self.servers.items():
@@ -186,7 +214,19 @@ class MCPRuntime:
         return result
 
     async def close(self) -> None:
+        errors: list[BaseException] = []
+        for manager in reversed(self._run_managers):
+            try:
+                await manager.cleanup()
+            except BaseException as exc:
+                errors.append(exc)
+        self._run_managers.clear()
         if self._connected:
-            await self.manager.cleanup()
+            try:
+                await self.manager.cleanup()
+            except BaseException as exc:
+                errors.append(exc)
         self._connected = False
         self._tool_cache.clear()
+        if errors:
+            raise BaseExceptionGroup("MCP cleanup failures", errors)

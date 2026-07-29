@@ -1,4 +1,6 @@
-import hashlib, json, pathlib, re
+import hashlib
+import json
+import pathlib
 
 ROOT = pathlib.Path(__file__).parents[1]
 

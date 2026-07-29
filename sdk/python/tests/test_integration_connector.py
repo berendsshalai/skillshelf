@@ -31,6 +31,7 @@ def test_manifest_secret_pagination_incremental_etag_and_redaction(monkeypatch):
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
             self.send_header("ETag", '"stock-v1"')
+            self.send_header("X-RateLimit-Remaining", "8")
             self.end_headers()
             self.wfile.write(body)
 
@@ -80,6 +81,7 @@ def test_manifest_secret_pagination_incremental_etag_and_redaction(monkeypatch):
         assert [item["id"] for item in first.items] == ["stock-1", "stock-2"]
         assert first.pages == 3
         assert second.not_modified
+        assert first.rate_limit_headers == {"x-ratelimit-remaining": "8"}
         assert calls[0]["query"]["updated_since"] == ["2026-07-01T00:00:00Z"]
         assert len(calls) == 5  # one throttled attempt, three pages, then one 304
         assert all(call["key"] == "super-secret" for call in calls)

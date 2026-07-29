@@ -1,4 +1,6 @@
-import pathlib, subprocess, tempfile
+import pathlib
+import subprocess
+import tempfile
 
 ROOT = pathlib.Path(__file__).parents[1]
 NAMES = ["find-skills-codex", "superpowers-codex", "codex-memory", "codex-design-intelligence", "codex-skill-governor"]

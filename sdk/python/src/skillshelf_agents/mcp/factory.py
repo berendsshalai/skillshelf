@@ -2,7 +2,12 @@ from __future__ import annotations
 
 from typing import Any
 
-from agents.mcp import MCPServerSse, MCPServerStdio, MCPServerStreamableHttp
+from agents.mcp import (
+    MCPServerSse,
+    MCPServerStdio,
+    MCPServerStreamableHttp,
+    create_static_tool_filter,
+)
 from agents.mcp.server import (
     MCPServerSseParams,
     MCPServerStdioParams,
@@ -18,10 +23,10 @@ class MCPFactory:
             "name": definition.name,
             "cache_tools_list": definition.cache_tools,
             "client_session_timeout_seconds": definition.client_session_timeout_seconds,
-            "tool_filter": {
-                "allowed_tool_names": definition.allowed_tools or None,
-                "blocked_tool_names": definition.blocked_tools or None,
-            },
+            "tool_filter": create_static_tool_filter(
+                allowed_tool_names=definition.allowed_tools or None,
+                blocked_tool_names=definition.blocked_tools or None,
+            ),
             "require_approval": "always" if definition.require_approval else "never",
         }
         if definition.transport == "stdio":

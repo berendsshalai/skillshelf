@@ -10,15 +10,37 @@ from agents import Agent, RunHooks, Runner
 
 from .agent_factory import AgentFactory
 from .budgets import UsageStore
-from .contracts import Observation, OrchestratorResult, SpecialistResult, UsageSummary
+from .contracts import (
+    FileChange,
+    Observation,
+    OrchestratorResult,
+    SpecialistResult,
+    TestExecution,
+    UsageSummary,
+)
 from .event_log import EventLog
 from .guardrails import validate_input, validate_output
 from .ledger import RunLedger
 from .ledger.models import RunStatus
 from .registry import RuntimeRegistry
+from .mcp import MCPAssignment, MCPAssignmentResolver, StaticHostToolProvider
+from .mcp_runtime import MCPRuntime
 from .routing import route_task
-from .runtime import DelegationInput, RuntimeContext, build_delegation_prompt
-from .runtime.budgets import BudgetLedger, RuntimeBudgetHooks
+from .runtime import (
+    CapabilityProviderType,
+    CapabilityResolver,
+    DelegationInput,
+    RunEvidenceRecorder,
+    RuntimeContext,
+    build_delegation_prompt,
+)
+from .runtime.budgets import (
+    BudgetLedger,
+    BudgetLimitExceeded,
+    BudgetScope,
+    RuntimeBudgetHooks,
+)
+from .runtime.evidence import validate_evidence_references
 from .sessions import SessionStore, UnifiedSessionManager
 from .sessions.identity import repository_identity
 from .tools import CapabilityToolRegistry
@@ -99,19 +121,52 @@ class SkillShelfOrchestrator:
             )
         return str(output)
 
-    def _build_agents(self, budget_ledger: BudgetLedger) -> OperationalRunHooks:
+    def _build_agents(
+        self,
+        budget_ledger: BudgetLedger,
+        *,
+        assignments: dict[str, MCPAssignment] | None = None,
+        strict: bool = False,
+    ) -> OperationalRunHooks:
         budget_hooks = RuntimeBudgetHooks(budget_ledger)
         specialist_tool_names = {item.tool_name: item.id for item in self.registry.agents}
         hooks = OperationalRunHooks(budget_hooks, specialist_tool_names)
         tools: list[Any] = []
         self.specialists = {}
         for definition in self.registry.agents:
-            local_capabilities = [
-                item for item in definition.allowed_capabilities if self.tool_registry.supports(item)
-            ]
+            assignment = (assignments or {}).get(definition.id)
+            if strict and assignment is not None:
+                report = CapabilityResolver(self.tool_registry).resolve(definition, mcp_assignment=assignment)
+                local_capabilities = [
+                    item.capability
+                    for item in report.resolutions
+                    if item.provider_type == CapabilityProviderType.FUNCTION_TOOL
+                ]
+            else:
+                # Construction used only for metadata/lazy-skill introspection. Actual
+                # execution always takes the strict run-scoped path below.
+                local_capabilities = [
+                    item for item in definition.allowed_capabilities if self.tool_registry.supports(item)
+                ]
             function_tools = self.tool_registry.build(local_capabilities)
-            specialist = self.factory.build_specialist(definition, tools=function_tools)
+            if assignment is not None:
+                by_name = {tool.name: tool for tool in [*function_tools, *assignment.host_tools]}
+                function_tools = list(by_name.values())
+            specialist = self.factory.build_specialist(
+                definition,
+                tools=function_tools,
+                mcp_servers=assignment.connected_servers if assignment is not None else [],
+            )
             self.specialists[definition.id] = specialist
+            budget_ledger.register_scope(
+                BudgetScope(
+                    scope_id=f"agent:{definition.id}",
+                    agent_id=definition.display_name,
+                    input_limit=definition.token_budget.input,
+                    output_limit=definition.token_budget.output,
+                    total_limit=definition.token_budget.input + definition.token_budget.output,
+                )
+            )
 
             async def needs_approval(
                 context: Any,
@@ -177,6 +232,46 @@ class SkillShelfOrchestrator:
         )
         return hooks
 
+    def _host_providers(self) -> list[StaticHostToolProvider]:
+        providers: list[StaticHostToolProvider] = []
+        for item in MCPRuntime(self.registry.root).servers.values():
+            if item.adapter != "host-provided":
+                continue
+            if (
+                "optional" in item.installation_status.casefold()
+                or "external" in item.installation_status.casefold()
+            ):
+                continue
+
+            def build_tools(
+                definition: Any,
+                _context: RuntimeContext,
+                *,
+                registry: CapabilityToolRegistry = self.tool_registry,
+            ) -> list[Any]:
+                supported = [
+                    capability
+                    for capability in definition.allowed_capabilities
+                    if registry.supports(capability)
+                ]
+                return registry.build(supported)
+
+            providers.append(StaticHostToolProvider(item.name, build_tools))
+        return providers
+
+    async def _resolve_assignments(
+        self,
+        runtime_context: RuntimeContext,
+        selected: str | None,
+        mcp_runtime: MCPRuntime,
+    ) -> dict[str, MCPAssignment]:
+        resolver = MCPAssignmentResolver(mcp_runtime, self._host_providers())
+        definitions = [self.registry.by_id(selected)] if selected is not None else self.registry.agents
+        assignments: dict[str, MCPAssignment] = {}
+        for definition in definitions:
+            assignments[definition.id] = await resolver.resolve_for_agent(definition, runtime_context)
+        return assignments
+
     @staticmethod
     def _usage(result: Any) -> UsageSummary:
         usage = result.context_wrapper.usage
@@ -222,8 +317,6 @@ class SkillShelfOrchestrator:
 
         selected = explicit_agent or decision.direct_agent
         budget_ledger = BudgetLedger(self.settings.soft_token_limit, self.settings.hard_token_limit)
-        hooks = self._build_agents(budget_ledger)
-        agent = self.specialists[selected] if selected else self._master
         runtime_context = RuntimeContext(
             run_id=run_id,
             trace_id=trace_id,
@@ -235,6 +328,36 @@ class SkillShelfOrchestrator:
             hard_token_limit=self.settings.hard_token_limit,
             max_delegation_depth=self.settings.max_delegation_depth,
         )
+        evidence = RunEvidenceRecorder(run_id, ledger=self.ledger)
+        self.tool_registry.bind_evidence(evidence, agent_id=selected or self.registry.master.id)
+        mcp_runtime = MCPRuntime(self.registry.root)
+        try:
+            assignments = await self._resolve_assignments(runtime_context, selected, mcp_runtime)
+            for agent_id, assignment in assignments.items():
+                for server, digest in assignment.tool_list_digests.items():
+                    evidence.record_mcp_connection(
+                        server_name=server,
+                        agent_id=agent_id,
+                        status="connected",
+                        tool_list_digest=digest,
+                        tool_names=assignment.provider_tools.get(server, []),
+                    )
+                for degraded in assignment.degraded:
+                    evidence.record_mcp_connection(
+                        agent_id=agent_id,
+                        status="degraded",
+                        **degraded.model_dump(),
+                    )
+            hooks = self._build_agents(budget_ledger, assignments=assignments, strict=True)
+            agent = self.specialists[selected] if selected else self._master
+        except BaseException as exc:
+            self.ledger.record_error(run_id, code=type(exc).__name__, message=str(exc))
+            self.ledger.transition(run_id, RunStatus.FAILED)
+            try:
+                await mcp_runtime.close()
+            except BaseException:
+                pass
+            raise
         run_input: str = task
         if selected:
             definition = self.registry.by_id(selected)
@@ -271,18 +394,49 @@ class SkillShelfOrchestrator:
             )
             output = result.final_output
             if selected:
+                mechanical = evidence.evidence_for_agent_invocation(selected)
                 output = OrchestratorResult(
                     status=output.status,
                     answer=output.summary,
                     specialists_used=[selected],
-                    evidence=output.evidence,
-                    files_changed=output.files_changed,
-                    tests_run=output.tests_run,
+                    evidence=validate_evidence_references(output.evidence, evidence.evidence_for_run()),
+                    files_changed=mechanical.files_changed,
+                    tests_run=[
+                        TestExecution(
+                            command=" ".join(item.command),
+                            status="passed" if item.exit_code == 0 else "failed",
+                            exit_code=item.exit_code,
+                            artifact_id=item.stdout_artifact_id,
+                        )
+                        for item in mechanical.tests_run
+                    ],
                     unresolved_risks=output.risks,
                 )
             if not isinstance(output, OrchestratorResult):
                 raise TypeError("runtime returned an invalid structured output")
             output.specialists_used = [selected] if selected else hooks.specialists_used
+            if not selected:
+                run_evidence = evidence.evidence_for_run()
+                output.evidence = validate_evidence_references(output.evidence, run_evidence)
+                output.files_changed = [
+                    FileChange(
+                        path=item["path"],
+                        action=item["action"],
+                        summary=(
+                            f"{item['before_sha256'] or 'absent'} -> {item['after_sha256'] or 'absent'}"
+                        ),
+                    )
+                    for item in run_evidence["file_changes"]
+                ]
+                output.tests_run = [
+                    TestExecution(
+                        command=" ".join(item["command"]),
+                        status="passed" if item["exit_code"] == 0 else "failed",
+                        exit_code=item["exit_code"],
+                        artifact_id=item["stdout_artifact_id"],
+                    )
+                    for item in run_evidence["tests"]
+                ]
             output.usage = self._usage(result)
             output.usage.budget_exceeded = not budget_ledger.optional_calls_allowed
             for request in budget_ledger.by_request:
@@ -311,6 +465,27 @@ class SkillShelfOrchestrator:
                     evaluation_failures=[],
                 )
             )
+            self.events.record_event(
+                run_id=run_id,
+                trace_id=trace_id,
+                session_id=scoped,
+                agent_ids=output.specialists_used,
+                skill_hashes={
+                    item: self.factory.skill_loader.load_skill(self.registry.by_id(item).skill).sha256
+                    for item in output.specialists_used
+                },
+                event_type="run_completed",
+                severity="info",
+                details={
+                    "status": output.status,
+                    "tool_failures": [
+                        item
+                        for items in evidence.evidence_for_run()["agents"].values()
+                        for item in items
+                        if item["status"] != "completed"
+                    ],
+                },
+            )
             terminal = (
                 RunStatus.PARTIALLY_COMPLETED
                 if output.status == "partially_completed"
@@ -322,6 +497,41 @@ class SkillShelfOrchestrator:
             self.ledger.record_error(run_id, code="timeout", message=str(exc))
             self.ledger.transition(run_id, RunStatus.TIMED_OUT)
             raise RuntimeError("agent run timed out; inspect the run ledger for persisted evidence") from exc
+        except BudgetLimitExceeded as exc:
+            useful = bool(
+                evidence.evidence_for_run()["file_changes"]
+                or evidence.evidence_for_run()["artifacts"]
+                or evidence.evidence_for_run()["tests"]
+            )
+            output = OrchestratorResult(
+                status="partially_completed" if useful else "blocked",
+                answer=(
+                    "Execution stopped because the hard token budget was reached."
+                    if useful
+                    else "The hard token budget was reached before useful evidence was produced."
+                ),
+                specialists_used=[selected] if selected else hooks.specialists_used,
+                files_changed=[
+                    FileChange(
+                        path=item["path"],
+                        action=item["action"],
+                        summary="mechanically recorded before budget exhaustion",
+                    )
+                    for item in evidence.evidence_for_run()["file_changes"]
+                ],
+            )
+            output.usage = UsageSummary(
+                requests=budget_ledger.run_total.requests,
+                input_tokens=budget_ledger.run_total.input_tokens,
+                output_tokens=budget_ledger.run_total.output_tokens,
+                cached_tokens=budget_ledger.run_total.cached_tokens,
+                reasoning_tokens=budget_ledger.run_total.reasoning_tokens,
+                total_tokens=budget_ledger.run_total.total_tokens,
+                budget_exceeded=True,
+            )
+            self.ledger.record_error(run_id, code="budget_exhausted", message=str(exc))
+            self.ledger.transition(run_id, RunStatus.PARTIALLY_COMPLETED)
+            return output
         except BaseException as exc:
             if isinstance(exc, KeyboardInterrupt):
                 terminal = RunStatus.CANCELLED
@@ -333,3 +543,15 @@ class SkillShelfOrchestrator:
             except ValueError:
                 pass
             raise
+        finally:
+            try:
+                await mcp_runtime.close()
+            except BaseException as cleanup_error:
+                self.events.record_event(
+                    run_id=run_id,
+                    trace_id=trace_id,
+                    session_id=scoped,
+                    event_type="mcp_cleanup_failed",
+                    severity="error",
+                    details={"error": type(cleanup_error).__name__},
+                )

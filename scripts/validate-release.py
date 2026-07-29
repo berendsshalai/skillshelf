@@ -36,6 +36,7 @@ RUNTIME_DIRECTORIES = (
     "mcp",
     "docs/agents",
     "docs/integrations",
+    "docs/security",
 )
 
 
@@ -82,9 +83,7 @@ def inspect_zip(path: Path) -> tuple[zipfile.ZipFile, set[str]]:
         raise ReleaseValidationError(f"invalid ZIP artifact: {path.name}") from exc
     if corrupt is not None:
         archive.close()
-        raise ReleaseValidationError(
-            f"corrupt ZIP member in {path.name}: {corrupt}"
-        )
+        raise ReleaseValidationError(f"corrupt ZIP member in {path.name}: {corrupt}")
     names = {safe_archive_name(name, path) for name in archive.namelist()}
     if len(names) != len(archive.namelist()):
         archive.close()
@@ -137,13 +136,13 @@ def validate_wheel(path: Path, version: str) -> None:
         metadata_files = sorted(
             name for name in names if name.endswith(".dist-info/METADATA")
         )
-        wheel_files = sorted(name for name in names if name.endswith(".dist-info/WHEEL"))
+        wheel_files = sorted(
+            name for name in names if name.endswith(".dist-info/WHEEL")
+        )
         record_files = sorted(
             name for name in names if name.endswith(".dist-info/RECORD")
         )
-        if not (
-            len(metadata_files) == len(wheel_files) == len(record_files) == 1
-        ):
+        if not (len(metadata_files) == len(wheel_files) == len(record_files) == 1):
             raise ReleaseValidationError(
                 f"wheel metadata structure is invalid: {path.name}"
             )
@@ -157,23 +156,18 @@ def validate_wheel(path: Path, version: str) -> None:
             raise ReleaseValidationError(
                 f"wheel dist-info directory is inconsistent: {dist_info}"
             )
-        metadata = Parser().parsestr(
-            archive.read(metadata_files[0]).decode("utf-8")
-        )
+        metadata = Parser().parsestr(archive.read(metadata_files[0]).decode("utf-8"))
         if canonical_project_name(metadata.get("Name", "")) != PROJECT_NAME:
             raise ReleaseValidationError("wheel METADATA project name is inconsistent")
         if metadata.get("Version") != version:
             raise ReleaseValidationError("wheel METADATA version is inconsistent")
-        wheel_metadata = Parser().parsestr(
-            archive.read(wheel_files[0]).decode("utf-8")
-        )
+        wheel_metadata = Parser().parsestr(archive.read(wheel_files[0]).decode("utf-8"))
         expected_tag = "-".join(
             (match.group("python"), match.group("abi"), match.group("platform"))
         )
-        if (
-            wheel_metadata.get("Wheel-Version") != "1.0"
-            or expected_tag not in wheel_metadata.get_all("Tag", [])
-        ):
+        if wheel_metadata.get(
+            "Wheel-Version"
+        ) != "1.0" or expected_tag not in wheel_metadata.get_all("Tag", []):
             raise ReleaseValidationError("wheel tag metadata is inconsistent")
     except UnicodeDecodeError as exc:
         raise ReleaseValidationError("wheel METADATA is not UTF-8") from exc
@@ -197,9 +191,7 @@ def validate_sdist(path: Path, version: str) -> None:
                 )
             names = {safe_archive_name(member.name, path) for member in members}
             if len(names) != len(members):
-                raise ReleaseValidationError(
-                    f"duplicate archive member in {path.name}"
-                )
+                raise ReleaseValidationError(f"duplicate archive member in {path.name}")
             roots = {PurePosixPath(name).parts[0] for name in names if name}
             if len(roots) != 1:
                 raise ReleaseValidationError(
@@ -253,9 +245,7 @@ def required_runtime_members(repository_root: Path, wheel: Path) -> set[str]:
             raise ReleaseValidationError(
                 f"runtime source directory is empty: {relative}"
             )
-        required.update(
-            path.relative_to(repository_root).as_posix() for path in files
-        )
+        required.update(path.relative_to(repository_root).as_posix() for path in files)
     required.add(f"sdk/python/dist/{wheel.name}")
     return required
 
@@ -281,9 +271,7 @@ def validate_runtime(
         if bundled_version != version:
             raise ReleaseValidationError("runtime VERSION is inconsistent")
         if archive.read(f"sdk/python/dist/{wheel.name}") != wheel.read_bytes():
-            raise ReleaseValidationError(
-                "runtime wheel differs from the release wheel"
-            )
+            raise ReleaseValidationError("runtime wheel differs from the release wheel")
     finally:
         archive.close()
 
@@ -320,6 +308,27 @@ def validate_sbom(path: Path, version: str) -> None:
     ]
     if len(matching) != 1 or matching[0].get("versionInfo") != version:
         raise ReleaseValidationError("SBOM package version is inconsistent")
+    identifiers = {
+        package.get("SPDXID")
+        for package in packages
+        if isinstance(package, dict) and isinstance(package.get("SPDXID"), str)
+    }
+    if len(identifiers) != len(packages) or len(packages) < 2:
+        raise ReleaseValidationError(
+            "SBOM dependency packages are missing or duplicated"
+        )
+    relationships = sbom.get("relationships")
+    if not isinstance(relationships, list):
+        raise ReleaseValidationError("SBOM relationships are missing")
+    dependencies = {
+        item.get("relatedSpdxElement")
+        for item in relationships
+        if isinstance(item, dict)
+        and item.get("spdxElementId") == "SPDXRef-Package-SkillShelf"
+        and item.get("relationshipType") == "DEPENDS_ON"
+    }
+    if dependencies != identifiers - {"SPDXRef-Package-SkillShelf"}:
+        raise ReleaseValidationError("SBOM dependency relationships are incomplete")
 
 
 def validate_provenance(
@@ -342,6 +351,25 @@ def validate_provenance(
     external = build_definition.get("externalParameters")
     if not isinstance(external, dict) or external.get("version") != version:
         raise ReleaseValidationError("provenance version is inconsistent")
+    source = external.get("source")
+    if (
+        not isinstance(source, dict)
+        or not isinstance(source.get("commit"), str)
+        or not re.fullmatch(r"[0-9a-f]{40}", str(source["commit"]))
+        or not isinstance(source.get("dirty"), bool)
+    ):
+        raise ReleaseValidationError("provenance source state is incomplete")
+    dependencies = build_definition.get("resolvedDependencies")
+    if not isinstance(dependencies, list) or not dependencies:
+        raise ReleaseValidationError("provenance dependency locks are missing")
+    for dependency in dependencies:
+        if (
+            not isinstance(dependency, dict)
+            or not isinstance(dependency.get("uri"), str)
+            or not isinstance(dependency.get("digest"), dict)
+            or not SHA256.fullmatch(str(dependency["digest"].get("sha256", "")))
+        ):
+            raise ReleaseValidationError("provenance dependency lock is invalid")
 
     subjects = statement.get("subject")
     if not isinstance(subjects, list):
@@ -447,7 +475,9 @@ def validate_release(
     validate_source(source, version)
     validate_sbom(sbom, version)
 
-    release_files = {path.name for path in release_directory.iterdir() if path.is_file()}
+    release_files = {
+        path.name for path in release_directory.iterdir() if path.is_file()
+    }
     expected_release_files = expected_named | {wheel.name, sdist.name}
     if release_files != expected_release_files:
         raise ReleaseValidationError(
@@ -483,9 +513,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    version = args.version or (args.repository_root / "VERSION").read_text(
-        encoding="utf-8"
-    ).strip()
+    version = (
+        args.version
+        or (args.repository_root / "VERSION").read_text(encoding="utf-8").strip()
+    )
     release_directory = args.release_directory or (
         args.repository_root / "dist" / f"skillshelf-{version}"
     )

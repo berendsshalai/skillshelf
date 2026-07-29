@@ -20,8 +20,10 @@ class TestExecution(BaseModel):
     command: list[str] = Field(min_length=1)
     exit_code: int
     duration_seconds: float = Field(ge=0)
+    working_directory: str | None = None
     stdout_artifact_id: str | None = None
     stderr_artifact_id: str | None = None
+    tool_call_id: str | None = None
 
 
 class ToolExecutionEvidence(BaseModel):
