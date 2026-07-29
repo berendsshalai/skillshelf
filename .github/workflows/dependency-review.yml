@@ -7,7 +7,12 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    env:
+      DEPENDENCY_REVIEW_ENABLED: ${{ vars.DEPENDENCY_REVIEW_ENABLED }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Skip dependency review when dependency graph is unavailable
+        if: env.DEPENDENCY_REVIEW_ENABLED != 'true'
+        run: echo "Dependency review skipped until dependency graph is enabled for this repository."
       - uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4
+        if: env.DEPENDENCY_REVIEW_ENABLED == 'true'
