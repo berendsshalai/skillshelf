@@ -52,8 +52,8 @@ def is_link_or_reparse(path: Path) -> bool:
     if path.is_symlink():
         return True
     try:
-        attributes = os.lstat(path).st_file_attributes
-    except (AttributeError, OSError):
+        attributes = getattr(os.lstat(path), "st_file_attributes", 0)
+    except OSError:
         return False
     return bool(attributes & stat.FILE_ATTRIBUTE_REPARSE_POINT)
 

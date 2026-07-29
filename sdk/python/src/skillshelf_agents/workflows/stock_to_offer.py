@@ -11,6 +11,8 @@ from skillshelf_agents.data.database import canonical_json, digest
 from skillshelf_agents.delivery import DeliveryRequest, DeterministicDeliveryProvider
 from skillshelf_agents.pricing import PricingInput, PricingRule, calculate_price, persist_decision
 
+from .definitions import RetryPolicy, WorkflowDefinition, WorkflowStepDefinition
+
 
 class StockToOfferInput(BaseModel):
     tenant_id: str
@@ -227,3 +229,39 @@ class StockToOfferWorkflow:
             )
             self.database.connection.commit()
         return True
+
+
+def stock_to_offer_definition() -> WorkflowDefinition:
+    """Registerable durable definition for the reference stock-to-offer flow."""
+    standard_retry = RetryPolicy(maximum_attempts=3, base_delay_seconds=1)
+    return WorkflowDefinition(
+        id="stock-to-offer-v1",
+        version=1,
+        input_schema="skillshelf.stock-to-offer.v1",
+        steps=[
+            WorkflowStepDefinition(
+                id="connector-source", handler="stock.connector_source", retry_policy=standard_retry
+            ),
+            WorkflowStepDefinition(
+                id="persist-raw-record", handler="stock.persist_raw_record", retry_policy=standard_retry
+            ),
+            WorkflowStepDefinition(
+                id="canonical-stock", handler="stock.canonical_stock", retry_policy=standard_retry
+            ),
+            WorkflowStepDefinition(
+                id="calculate-price", handler="stock.calculate_price", retry_policy=standard_retry
+            ),
+            WorkflowStepDefinition(
+                id="estimate-delivery", handler="stock.estimate_delivery", retry_policy=standard_retry
+            ),
+            WorkflowStepDefinition(
+                id="send-offer",
+                handler="stock.send_offer",
+                retry_policy=standard_retry,
+                approval_policy="exact",
+            ),
+            WorkflowStepDefinition(
+                id="await-webhook", handler="stock.await_webhook", retry_policy=standard_retry
+            ),
+        ],
+    )

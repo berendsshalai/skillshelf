@@ -5,7 +5,7 @@ import ipaddress
 import random
 import socket
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from email.utils import parsedate_to_datetime
 from typing import Any, Callable
@@ -25,6 +25,7 @@ class RESTResult:
     etag: str | None
     not_modified: bool
     request_count: int
+    rate_limit_headers: dict[str, str] = field(default_factory=dict)
 
 
 class CircuitOpenError(RuntimeError):
@@ -188,6 +189,7 @@ class RESTConnector:
         pages = 0
         status_code = 0
         response_etag: str | None = None
+        rate_limit_headers: dict[str, str] = {}
         while next_url:
             request_params = dict(params)
             if pagination and pagination.type == "page_number":
@@ -197,6 +199,13 @@ class RESTConnector:
             response = self._request(resource, next_url, request_params, headers)
             request_count += 1
             status_code = response.status_code
+            rate_limit_headers.update(
+                {
+                    key: value
+                    for key, value in response.headers.items()
+                    if "rate" in key.lower() or key.lower() == "retry-after"
+                }
+            )
             self.request_log.append(
                 {
                     "method": resource.method,
@@ -206,7 +215,15 @@ class RESTConnector:
                 }
             )
             if status_code == 304:
-                return RESTResult((), status_code, pages, self._etags.get(resource_id), True, request_count)
+                return RESTResult(
+                    (),
+                    status_code,
+                    pages,
+                    self._etags.get(resource_id),
+                    True,
+                    request_count,
+                    rate_limit_headers,
+                )
             response.raise_for_status()
             content = response.content
             if len(content) > resource.maximum_payload_bytes:
@@ -236,4 +253,12 @@ class RESTConnector:
                     self._validate_url(next_url)
         if response_etag:
             self._etags[resource_id] = response_etag
-        return RESTResult(tuple(items), status_code, pages, response_etag, False, request_count)
+        return RESTResult(
+            tuple(items),
+            status_code,
+            pages,
+            response_etag,
+            False,
+            request_count,
+            rate_limit_headers,
+        )

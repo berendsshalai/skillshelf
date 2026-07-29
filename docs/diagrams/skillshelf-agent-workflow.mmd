@@ -1,27 +1,22 @@
+%% Generated from agents/registry.yml. Do not edit by hand.
 flowchart TB
-    USER["User / Task Request<br/>Goal · Context · Constraints · Files · Approval authority"]
-    MASTER["SkillShelf Orchestrator<br/>SkillShelf Master / SkillShelfMaster<br/>Routing · Context control · Budgets · Approvals · Evidence · Final synthesis"]
-
-    FIND["Find Skills Agent<br/>find-skills-codex<br/>INPUT → AGENT PROCESS → OUTPUT"]
-    SUPER["Superpowers Agent<br/>superpowers-codex<br/>INPUT → AGENT PROCESS → OUTPUT"]
-    MEMORY["Memory Agent<br/>codex-memory<br/>INPUT → AGENT PROCESS → OUTPUT"]
-    DESIGN["Design Intelligence Agent<br/>codex-design-intelligence<br/>INPUT → AGENT PROCESS → OUTPUT"]
-    GOVERNOR["Skill Governor Agent<br/>codex-skill-governor<br/>INPUT → AGENT PROCESS → OUTPUT"]
-
-    FINAL["Final Structured Response<br/>Answer · Evidence · Files changed · Tests · Usage · Risks · Next action"]
-
-    USER -->|Complete request| MASTER
-
-    MASTER -->|Bounded DelegationInput| FIND
-    MASTER -->|Bounded DelegationInput| SUPER
-    MASTER -->|Bounded DelegationInput| MEMORY
-    MASTER -->|Bounded DelegationInput| DESIGN
-    MASTER -->|Bounded DelegationInput| GOVERNOR
-
-    FIND -.->|Structured SpecialistResult| MASTER
-    SUPER -.->|Structured SpecialistResult| MASTER
-    MEMORY -.->|Structured SpecialistResult| MASTER
-    DESIGN -.->|Structured SpecialistResult| MASTER
-    GOVERNOR -.->|Structured GovernanceResult| MASTER
-
-    MASTER ==>|Reconciled verified result| FINAL
+    USER["User request<br/>Goal, context, constraints, files, authority"]
+    SKILLSHELF_MASTER["SkillShelf Master<br/>OrchestratorResult"]
+    FIND_SKILLS_AGENT["Find Skills Agent<br/>find-skills-codex<br/>SpecialistResult"]
+    SUPERPOWERS_AGENT["Superpowers Agent<br/>superpowers-codex<br/>SpecialistResult"]
+    MEMORY_AGENT["Memory Agent<br/>codex-memory<br/>SpecialistResult"]
+    DESIGN_INTELLIGENCE_AGENT["Design Intelligence Agent<br/>codex-design-intelligence<br/>SpecialistResult"]
+    SKILL_GOVERNOR_AGENT["Skill Governor Agent<br/>codex-skill-governor<br/>GovernanceResult"]
+    FINAL["Final structured response<br/>Verified evidence, tests, usage, risks"]
+    USER -->|Complete request| SKILLSHELF_MASTER
+    SKILLSHELF_MASTER -->|Bounded DelegationInput| FIND_SKILLS_AGENT
+    SKILLSHELF_MASTER -->|Bounded DelegationInput| SUPERPOWERS_AGENT
+    SKILLSHELF_MASTER -->|Bounded DelegationInput| MEMORY_AGENT
+    SKILLSHELF_MASTER -->|Bounded DelegationInput| DESIGN_INTELLIGENCE_AGENT
+    SKILLSHELF_MASTER -->|Bounded DelegationInput| SKILL_GOVERNOR_AGENT
+    FIND_SKILLS_AGENT -.->|SpecialistResult| SKILLSHELF_MASTER
+    SUPERPOWERS_AGENT -.->|SpecialistResult| SKILLSHELF_MASTER
+    MEMORY_AGENT -.->|SpecialistResult| SKILLSHELF_MASTER
+    DESIGN_INTELLIGENCE_AGENT -.->|SpecialistResult| SKILLSHELF_MASTER
+    SKILL_GOVERNOR_AGENT -.->|GovernanceResult| SKILLSHELF_MASTER
+    SKILLSHELF_MASTER ==>|Reconciled verified result| FINAL

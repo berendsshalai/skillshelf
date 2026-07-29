@@ -8,7 +8,8 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from types import SimpleNamespace
+from typing import Any, Callable
 
 import typer
 from rich.console import Console
@@ -16,7 +17,13 @@ from rich.console import Console
 from .agent_factory import AgentFactory
 from .budgets import UsageStore
 from .config import Settings, find_repository
-from .connectors import ConnectorManifest
+from .connectors import (
+    ConnectorManifest,
+    ConnectorRegistry,
+    ConnectorService,
+    EnvironmentSecretStore,
+    OpenAPIImporter,
+)
 from .data import IntegrationDatabase
 from .event_log import EventLog
 from .improvement import ProposalStore
@@ -44,6 +51,9 @@ events_app = typer.Typer(help="Inspect runtime events")
 traces_app = typer.Typer(help="Inspect traces")
 connector_app = typer.Typer(help="Manage provider-neutral connectors")
 workflow_app = typer.Typer(help="Manage durable workflows")
+worker_app = typer.Typer(help="Run durable workflow workers")
+scheduler_app = typer.Typer(help="Run the durable workflow scheduler")
+communications_app = typer.Typer(help="Inspect communication-provider readiness")
 app.add_typer(agents_app, name="agents")
 app.add_typer(usage_app, name="usage")
 app.add_typer(sessions_app, name="sessions")
@@ -55,6 +65,9 @@ app.add_typer(events_app, name="events")
 app.add_typer(traces_app, name="traces")
 app.add_typer(connector_app, name="connector")
 app.add_typer(workflow_app, name="workflow")
+app.add_typer(worker_app, name="worker")
+app.add_typer(scheduler_app, name="scheduler")
+app.add_typer(communications_app, name="communications")
 console = Console()
 
 
@@ -121,13 +134,33 @@ def inspect_agent(agent_id: str, json_output: bool = typer.Option(False, "--json
     _emit(registry.by_id(agent_id).model_dump(), json_output)
 
 
+@agents_app.command("list")
+def list_agents_command(json_output: bool = typer.Option(False, "--json")) -> None:
+    _, _, registry = _runtime()
+    _emit(
+        [
+            {
+                "id": item.id,
+                "skill": item.skill,
+                "model_profile": item.model_profile,
+                "mcp": item.allowed_mcp,
+            }
+            for item in registry.agents
+        ],
+        json_output,
+    )
+
+
 @app.command()
 def doctor(
     deep: bool = typer.Option(False, "--deep"),
     credentialed: bool = typer.Option(False, "--credentialed"),
+    yes: bool = typer.Option(False, "--yes"),
     json_output: bool = typer.Option(False, "--json"),
 ) -> None:
     checks: list[dict[str, str]] = []
+    if credentialed and not (deep and yes):
+        raise typer.BadParameter("credentialed doctor requires --deep --credentialed --yes")
     try:
         root, settings, registry = _runtime()
         checks.append({"check": "registry", "status": "PASS"})
@@ -326,17 +359,39 @@ def doctor(
                     "status": "PASS" if session_ok else "FAIL",
                 }
             )
+            from .diagnostics import run_fake_mcp_probe
+
+            try:
+                fake_mcp = asyncio.run(run_fake_mcp_probe(root))
+                checks.append(
+                    {
+                        "check": "actual MCP connection/discovery/read/cleanup",
+                        "status": str(fake_mcp["status"]),
+                        "detail": json.dumps(fake_mcp, sort_keys=True),
+                    }
+                )
+            except Exception as exc:
+                checks.append(
+                    {
+                        "check": "actual MCP connection/discovery/read/cleanup",
+                        "status": "FAIL",
+                        "detail": str(exc),
+                    }
+                )
             checks.extend(
                 [
                     {
                         "check": "actual model/master/specialist invocation",
-                        "status": "SKIPPED" if not credentialed else "DEGRADED",
-                        "detail": "Use a credentialled evaluation fixture; doctor never makes an implicit paid call.",
-                    },
-                    {
-                        "check": "actual MCP connection/discovery/read",
-                        "status": "SKIPPED",
-                        "detail": "No required local MCP provider was connected during this diagnostic.",
+                        "status": (
+                            "SKIPPED" if not credentialed or not os.getenv("OPENAI_API_KEY") else "DEGRADED"
+                        ),
+                        "detail": (
+                            "Credentialed invocation was not requested."
+                            if not credentialed
+                            else "OPENAI_API_KEY is not configured."
+                            if not os.getenv("OPENAI_API_KEY")
+                            else "Credential found; run the protected credentialed evaluation workflow for measured fixtures."
+                        ),
                     },
                     {"check": "optional provider readiness", "status": "SKIPPED"},
                 ]
@@ -405,6 +460,12 @@ def session_delete(session_id: str, yes: bool = typer.Option(False, "--yes")) ->
 @sessions_app.command("export")
 def session_export(session_id: str, destination: Path) -> None:
     console.print(asyncio.run(_session_manager().export(session_id, destination)))
+
+
+@sessions_app.command("vacuum")
+def session_vacuum(json_output: bool = typer.Option(False, "--json")) -> None:
+    _session_manager().vacuum()
+    _emit({"status": "completed", "side_effect": "compacted the local session database"}, json_output)
 
 
 @mcp_app.callback(invoke_without_command=True)
@@ -478,15 +539,63 @@ def proposal_reject(proposal_id: str, yes: bool = typer.Option(False, "--yes")) 
 
 
 @proposals_app.command("approve")
-def proposal_approve(proposal_id: str, yes: bool = typer.Option(False, "--yes")) -> None:
+def proposal_approve(
+    proposal_id: str,
+    user: str = typer.Option(..., "--user"),
+    yes: bool = typer.Option(False, "--yes"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
     root, settings, _ = _runtime()
+    result = ProposalStore(settings.home, root).approve_only(
+        proposal_id,
+        approved_by=user,
+        confirmed=yes,
+    )
+    _emit(result, json_output)
 
-    def evaluator(_skill: str) -> bool:
-        return (
-            subprocess.run([os.fspath(Path(sys.executable)), "-m", "pytest", "-q"], cwd=root).returncode == 0
-        )
 
-    ProposalStore(settings.home, root).approve(proposal_id, confirmed=yes, evaluator=evaluator)
+def _proposal_evaluator(root: Path, _skill: str) -> bool:
+    return (
+        subprocess.run(
+            [os.fspath(Path(sys.executable)), "-m", "pytest", "-q"],
+            cwd=root,
+            shell=False,
+        ).returncode
+        == 0
+    )
+
+
+@proposals_app.command("evaluate")
+def proposal_evaluate(
+    proposal_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    root, settings, _ = _runtime()
+    result = ProposalStore(settings.home, root).evaluate(
+        proposal_id,
+        lambda skill: _proposal_evaluator(root, skill),
+    )
+    _emit(result, json_output)
+
+
+@proposals_app.command("apply")
+def proposal_apply(
+    proposal_id: str,
+    yes: bool = typer.Option(False, "--yes"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    root, settings, _ = _runtime()
+    _emit(ProposalStore(settings.home, root).apply(proposal_id, confirmed=yes), json_output)
+
+
+@proposals_app.command("rollback")
+def proposal_rollback(
+    proposal_id: str,
+    yes: bool = typer.Option(False, "--yes"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    root, settings, _ = _runtime()
+    _emit(ProposalStore(settings.home, root).rollback(proposal_id, confirmed=yes), json_output)
 
 
 def _approval_store() -> ApprovalStore:
@@ -568,13 +677,35 @@ def runs_replay(run_id: str) -> None:
 
 
 @events_app.command("tail")
-def events_tail(limit: int = typer.Option(20, min=1, max=1000)) -> None:
+def events_tail(
+    limit: int = typer.Option(20, min=1, max=1000),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
     _, settings, _ = _runtime()
-    _emit(EventLog(settings.home / "events").read()[-limit:], False)
+    _emit(EventLog(settings.home / "events").read()[-limit:], json_output)
+
+
+@events_app.command("inspect")
+def events_inspect(
+    event_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    _, settings, _ = _runtime()
+    matches = [
+        item
+        for item in EventLog(settings.home / "events").read()
+        if getattr(item, "event_id", None) == event_id or item.run_id == event_id
+    ]
+    if not matches:
+        raise typer.BadParameter("event not found")
+    _emit(matches[-1].model_dump(mode="json"), json_output)
 
 
 @traces_app.command("inspect")
-def traces_inspect(trace_id: str) -> None:
+def traces_inspect(
+    trace_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
     matches = [
         item.model_dump(mode="json")
         for item in _run_ledger().list_runs(limit=1000)
@@ -582,7 +713,7 @@ def traces_inspect(trace_id: str) -> None:
     ]
     if not matches:
         raise typer.BadParameter("trace not found")
-    _emit(matches, False)
+    _emit(matches, json_output)
 
 
 def _connector_directory() -> Path:
@@ -592,53 +723,151 @@ def _connector_directory() -> Path:
     return directory
 
 
+def _connector_registry() -> ConnectorRegistry:
+    _, settings, _ = _runtime()
+    return ConnectorRegistry(settings.home / "connectors.sqlite")
+
+
+def _read_json_object(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise typer.BadParameter(f"{path} must contain a JSON object")
+    return value
+
+
 @connector_app.command("list")
-def connector_list() -> None:
-    _emit(
-        [
-            json.loads(path.read_text(encoding="utf-8"))
-            for path in sorted(_connector_directory().glob("*.json"))
-        ],
-        False,
-    )
+def connector_list(json_output: bool = typer.Option(False, "--json")) -> None:
+    registry = _connector_registry()
+    try:
+        _emit([item.model_dump(mode="json") for item in registry.list()], json_output)
+    finally:
+        registry.close()
+
+
+@connector_app.command("inspect")
+def connector_inspect(
+    connector_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    registry = _connector_registry()
+    try:
+        _emit(registry.inspect(connector_id).model_dump(mode="json"), json_output)
+    except KeyError as exc:
+        raise typer.BadParameter("connector not found") from exc
+    finally:
+        registry.close()
 
 
 @connector_app.command("add")
-def connector_add(manifest: Path) -> None:
-    value = ConnectorManifest.model_validate_json(manifest.read_text(encoding="utf-8"))
-    destination = _connector_directory() / f"{value.id}.json"
-    if destination.exists():
-        raise typer.BadParameter("connector already exists")
-    destination.write_text(value.model_dump_json(indent=2) + "\n", encoding="utf-8")
-    console.print(f"Stored reviewed connector manifest {value.id}; no network call was made.")
+def connector_add(
+    manifest: Path | None = typer.Option(None, "--manifest"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    registry = _connector_registry()
+    try:
+        if manifest is None:
+            from .connectors.onboarding import ConnectorOnboardingService
+
+            result = ConnectorOnboardingService(registry).interactive(typer.prompt)
+        else:
+            value = ConnectorManifest.model_validate_json(manifest.read_text(encoding="utf-8"))
+            result = registry.add(value)
+        _emit(result.model_dump(mode="json"), json_output)
+    finally:
+        registry.close()
 
 
 @connector_app.command("test")
-def connector_test(connector_id: str) -> None:
-    path = _connector_directory() / f"{connector_id}.json"
-    value = ConnectorManifest.model_validate_json(path.read_text(encoding="utf-8"))
-    _emit({"id": value.id, "manifest": "PASS", "network": "SKIPPED"}, False)
+def connector_test(
+    connector_id: str,
+    operation: str | None = typer.Option(None, "--operation"),
+    fixture: Path | None = typer.Option(None, "--offline-fixture", "--fixture"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    registry = _connector_registry()
+    try:
+        result = ConnectorService(registry, EnvironmentSecretStore(dict(os.environ))).test(
+            connector_id,
+            operation_id=operation,
+            offline_fixture=_read_json_object(fixture) if fixture else None,
+        )
+        _emit(result.model_dump(mode="json"), json_output)
+        if result.status == "FAIL":
+            raise typer.Exit(2)
+    finally:
+        registry.close()
 
 
 @connector_app.command("doctor")
-def connector_doctor(connector_id: str) -> None:
-    connector_test(connector_id)
+def connector_doctor(
+    connector_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    connector_test(connector_id, json_output=json_output)
 
 
 @connector_app.command("sync")
-def connector_sync(connector_id: str) -> None:
-    path = _connector_directory() / f"{connector_id}.json"
-    if not path.exists():
-        raise typer.BadParameter("connector not found")
-    console.print("Sync requires an explicitly configured resource operation and secret references.")
-    raise typer.Exit(2)
+def connector_sync(
+    connector_id: str,
+    resource: str = typer.Option(..., "--resource"),
+    tenant: str = typer.Option(..., "--tenant"),
+    since: str | None = typer.Option(None, "--since"),
+    maximum_pages: int | None = typer.Option(None, "--max-pages", "--maximum-pages", min=1),
+    dry_run: bool = typer.Option(False, "--dry-run"),
+    fixture: Path | None = typer.Option(None, "--fixture"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    registry = _connector_registry()
+    try:
+        report = ConnectorService(registry, EnvironmentSecretStore(dict(os.environ))).sync(
+            connector_id,
+            resource_id=resource,
+            tenant_id=tenant,
+            since=since,
+            maximum_pages=maximum_pages,
+            dry_run=dry_run,
+            fixture=_read_json_object(fixture) if fixture else None,
+        )
+        _emit(report.model_dump(mode="json"), json_output)
+    finally:
+        registry.close()
 
 
 @connector_app.command("import-openapi")
-def connector_import_openapi(source: str) -> None:
-    del source
-    console.print("OpenAPI code generation is not completed in 0.3.0; no connector was activated.")
-    raise typer.Exit(2)
+def connector_import_openapi(
+    source: str,
+    connector_id: str | None = typer.Option(None, "--id"),
+    yes: bool = typer.Option(False, "--yes"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    if not yes:
+        raise typer.BadParameter("OpenAPI import writes an inactive draft and requires --yes")
+    _, settings, _ = _runtime()
+    result = OpenAPIImporter(settings.home / "connector-imports").import_source(
+        source,
+        connector_id=connector_id,
+    )
+    payload = _read_json_object(result.manifest_path)
+    for key in ("activation_state", "review_required", "auth_scheme_inventory"):
+        payload.pop(key, None)
+    registry = _connector_registry()
+    try:
+        record = registry.add(
+            ConnectorManifest.model_validate(payload),
+            activation_state="INACTIVE_REVIEW_REQUIRED",
+        )
+        _emit(
+            {
+                "connector": record.model_dump(mode="json"),
+                "draft_path": str(result.connector_path),
+                "operations": result.operations,
+                "unresolved_mappings": result.unresolved_mappings,
+                "network": "not-invoked",
+            },
+            json_output,
+        )
+    finally:
+        registry.close()
 
 
 def _operations_database() -> IntegrationDatabase:
@@ -646,59 +875,242 @@ def _operations_database() -> IntegrationDatabase:
     return IntegrationDatabase(settings.home / "operations.sqlite")
 
 
+def _workflow_runtime() -> Any:
+    from .workflows import (
+        DurableWorkflowEngine,
+        WaitForExternalEvent,
+        WorkflowRegistry,
+        stock_to_offer_definition,
+    )
+
+    _, settings, _ = _runtime()
+    definitions = WorkflowRegistry()
+    definition = stock_to_offer_definition()
+    definitions.register(definition)
+
+    def completed(value: dict[str, Any]) -> dict[str, Any]:
+        return dict(value)
+
+    def wait_for_provider(value: dict[str, Any]) -> dict[str, Any]:
+        correlation = str(value.get("provider_reference") or "provider-message-pending")
+        raise WaitForExternalEvent(correlation)
+
+    handlers: dict[str, Callable[[dict[str, Any]], dict[str, Any]]] = {
+        step.handler: completed for step in definition.steps
+    }
+    handlers["stock.await_webhook"] = wait_for_provider
+    return DurableWorkflowEngine(settings.home / "workflows.sqlite", definitions, handlers)
+
+
 @workflow_app.command("list")
-def workflow_list() -> None:
-    _emit([{"id": "stock-to-offer-v1", "durable": True}], False)
+def workflow_list(json_output: bool = typer.Option(False, "--json")) -> None:
+    engine = _workflow_runtime()
+    try:
+        _emit(
+            [
+                {
+                    "id": item.id,
+                    "version": item.version,
+                    "input_schema": item.input_schema,
+                    "steps": [step.model_dump(mode="json") for step in item.steps],
+                }
+                for item in engine.registry.list()
+            ],
+            json_output,
+        )
+    finally:
+        engine.close()
+
+
+@workflow_app.command("inspect")
+def workflow_inspect(
+    workflow_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    engine = _workflow_runtime()
+    try:
+        _emit(engine.registry.inspect(workflow_id).model_dump(mode="json"), json_output)
+    except KeyError as exc:
+        raise typer.BadParameter("workflow not found") from exc
+    finally:
+        engine.close()
+
+
+@workflow_app.command("run")
+def workflow_run(
+    workflow_id: str,
+    input_path: Path = typer.Option(..., "--input"),
+    idempotency_key: str = typer.Option(..., "--idempotency-key"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    engine = _workflow_runtime()
+    try:
+        result = engine.start(
+            workflow_id,
+            _read_json_object(input_path),
+            idempotency_key=idempotency_key,
+        )
+        _emit(result.model_dump(mode="json"), json_output)
+    finally:
+        engine.close()
 
 
 @workflow_app.command("status")
-def workflow_status(run_id: str) -> None:
-    database = _operations_database()
+def workflow_status(
+    run_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    engine = _workflow_runtime()
     try:
-        row = database.connection.execute(
-            "SELECT id,workflow_id,state,result_json,updated_at FROM workflow_runs WHERE id=?",
-            (run_id,),
-        ).fetchone()
-        if row is None:
-            raise typer.BadParameter("workflow run not found")
-        _emit(dict(row), False)
+        _emit(engine.status(run_id).model_dump(mode="json"), json_output)
+    except KeyError as exc:
+        raise typer.BadParameter("workflow run not found") from exc
     finally:
-        database.close()
+        engine.close()
+
+
+@workflow_app.command("approve")
+def workflow_approve(
+    run_id: str,
+    step_id: str = typer.Argument(...),
+    approval_id: str = typer.Option(..., "--approval"),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    engine = _workflow_runtime()
+    try:
+        _emit(
+            engine.approve(run_id, step_id, approval_id=approval_id).model_dump(mode="json"),
+            json_output,
+        )
+    finally:
+        engine.close()
+
+
+@workflow_app.command("resume")
+def workflow_resume(
+    run_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    engine = _workflow_runtime()
+    try:
+        _emit(engine.resume(run_id).model_dump(mode="json"), json_output)
+    finally:
+        engine.close()
+
+
+@workflow_app.command("retry")
+def workflow_retry(
+    run_id: str,
+    step_id: str = typer.Argument(...),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    engine = _workflow_runtime()
+    try:
+        _emit(engine.retry(run_id, step_id).model_dump(mode="json"), json_output)
+    finally:
+        engine.close()
 
 
 @workflow_app.command("cancel")
-def workflow_cancel(run_id: str) -> None:
-    database = _operations_database()
+def workflow_cancel(
+    run_id: str,
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    engine = _workflow_runtime()
     try:
-        with database.connection:
-            cursor = database.connection.execute(
-                "UPDATE workflow_runs SET state='CANCELLED' WHERE id=? AND state NOT IN ('COMPLETED','FAILED','CANCELLED')",
-                (run_id,),
-            )
-        if cursor.rowcount != 1:
-            raise typer.BadParameter("workflow run cannot be cancelled")
+        _emit(engine.cancel(run_id).model_dump(mode="json"), json_output)
     finally:
-        database.close()
+        engine.close()
 
 
 @workflow_app.command("dead-letter")
-def workflow_dead_letter() -> None:
-    database = _operations_database()
+def workflow_dead_letter(json_output: bool = typer.Option(False, "--json")) -> None:
+    engine = _workflow_runtime()
     try:
-        rows = [
-            dict(row)
-            for row in database.connection.execute(
-                "SELECT id,workflow_id,state,updated_at FROM workflow_runs WHERE state='DEAD_LETTERED'"
-            )
-        ]
-        _emit(rows, False)
+        _emit(engine.dead_letters(), json_output)
     finally:
-        database.close()
+        engine.close()
+
+
+@worker_app.command("run")
+def worker_run(
+    maximum_runs: int = typer.Option(100, "--maximum-runs", min=1, max=10_000),
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    from .workflows.worker import WorkflowWorker
+
+    engine = _workflow_runtime()
+    try:
+        results = WorkflowWorker(engine).run_until_idle(maximum_runs=maximum_runs)
+        _emit([item.model_dump(mode="json") for item in results], json_output)
+    finally:
+        engine.close()
+
+
+@scheduler_app.command("run")
+def scheduler_run(json_output: bool = typer.Option(False, "--json")) -> None:
+    from .workflows.scheduler import WorkflowScheduler
+
+    engine = _workflow_runtime()
+    try:
+        _emit({"scheduled": WorkflowScheduler(engine).run_once()}, json_output)
+    finally:
+        engine.close()
+
+
+@communications_app.command("doctor")
+def communications_doctor(
+    json_output: bool = typer.Option(False, "--json"),
+) -> None:
+    from .communications.providers import CommunicationsDoctor
+
+    secret_store = EnvironmentSecretStore(dict(os.environ))
+    adapters = [
+        SimpleNamespace(
+            channel="email",
+            sender=os.getenv("SMTP_SENDER"),
+            username_reference="SMTP_USERNAME",
+            password_reference="SMTP_PASSWORD",
+            secret_store=secret_store,
+        ),
+        SimpleNamespace(
+            channel="whatsapp",
+            sender=os.getenv("META_WHATSAPP_SENDER"),
+            token_reference="META_TOKEN",
+            app_secret_reference="META_APP_SECRET",
+            secret_store=secret_store,
+        ),
+        SimpleNamespace(
+            channel="instagram",
+            sender=os.getenv("META_INSTAGRAM_SENDER"),
+            token_reference="META_TOKEN",
+            app_secret_reference="META_APP_SECRET",
+            secret_store=secret_store,
+        ),
+        SimpleNamespace(
+            channel="sms",
+            sender=os.getenv("TWILIO_SMS_SENDER"),
+            auth_token_reference="TWILIO_AUTH_TOKEN",
+            secret_store=secret_store,
+        ),
+        SimpleNamespace(
+            channel="voice",
+            sender=os.getenv("TWILIO_VOICE_SENDER"),
+            auth_token_reference="TWILIO_AUTH_TOKEN",
+            secret_store=secret_store,
+        ),
+    ]
+    results = CommunicationsDoctor().inspect(adapters)
+    _emit([item.model_dump(mode="json") for item in results], json_output)
 
 
 @app.command("suggest")
 def suggest() -> None:
-    connectors = any(_connector_directory().glob("*.json"))
+    registry = _connector_registry()
+    try:
+        connectors = bool(registry.list())
+    finally:
+        registry.close()
     state = CapabilityState(
         has_stock_source=connectors,
         has_pricing_rule=False,

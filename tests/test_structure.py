@@ -1,4 +1,7 @@
-import json, pathlib, re, tomllib
+import json
+import pathlib
+import re
+import tomllib
 
 ROOT = pathlib.Path(__file__).parents[1]
 EXPECTED = {"find-skills-codex", "superpowers-codex", "codex-memory", "codex-design-intelligence", "codex-skill-governor"}

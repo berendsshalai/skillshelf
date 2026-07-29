@@ -1,298 +1,118 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1050" role="img" aria-labelledby="workflow-title workflow-desc">
-  <title id="workflow-title">SkillShelf Agent Workflow Map</title>
-  <desc id="workflow-desc">A central SkillShelf orchestrator receives a user request, delegates bounded work to five specialist agents, receives structured results from every specialist, and returns a final verified response.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 2014" role="img" aria-labelledby="workflow-title workflow-desc">
+  <title id="workflow-title">SkillShelf detailed registry-driven agent workflow</title>
+  <desc id="workflow-desc">The live registry defines the SkillShelf Master and every specialist, including skills, bounded inputs, processes, output contracts, delegation edges, structured return edges, and the single final-response edge.</desc>
   <defs>
-    <marker id="arrow-solid" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#60768B"/>
-    </marker>
-    <marker id="arrow-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#173B63"/>
-    </marker>
-    <style>
-      .title{font:700 23px Inter,"Segoe UI",Arial,sans-serif;fill:#122033}
-      .subtitle{font:600 13px Inter,"Segoe UI",Arial,sans-serif;fill:#52657A;letter-spacing:.5px}
-      .node-title{font:700 18px Inter,"Segoe UI",Arial,sans-serif;fill:#122033}
-      .agent-title{font:700 16px Inter,"Segoe UI",Arial,sans-serif;fill:#122033}
-      .skill{font:600 11px Inter,"Segoe UI",Arial,sans-serif;fill:#52657A}
-      .section{font:700 11px Inter,"Segoe UI",Arial,sans-serif;fill:#122033;letter-spacing:1px}
-      .copy{font:400 11.5px Inter,"Segoe UI",Arial,sans-serif;fill:#31465B}
-      .small{font:600 10.5px Inter,"Segoe UI",Arial,sans-serif;fill:#52657A}
-      .master-title{font:700 25px Inter,"Segoe UI",Arial,sans-serif;fill:#173B63}
-      .master-copy{font:500 12.5px Inter,"Segoe UI",Arial,sans-serif;fill:#213B55}
-      .pill{font:700 10.5px Inter,"Segoe UI",Arial,sans-serif;fill:#173B63}
-      .edge-label{font:700 10px Inter,"Segoe UI",Arial,sans-serif;fill:#52657A}
-      .solid{fill:none;stroke:#60768B;stroke-width:2.25;marker-end:url(#arrow-solid)}
-      .return{fill:none;stroke:#173B63;stroke-width:2;stroke-dasharray:7 6;marker-end:url(#arrow-return)}
-      .divider{stroke:#DDE5ED;stroke-width:1}
-    </style>
+    <marker id="arrow-delegation" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#486581"/></marker>
+    <marker id="arrow-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#075985"/></marker>
   </defs>
-
-  <rect width="1600" height="1050" fill="#F7F9FC"/>
-  <text x="36" y="34" class="title">SkillShelf agent workflow</text>
-  <text x="1564" y="32" text-anchor="end" class="subtitle">CODEX-NATIVE + OPENAI AGENTS SDK MANAGER PATTERN</text>
-
-  <g id="connections" aria-label="Delegation and structured return connections">
-    <path class="solid" d="M296 170 H350" data-from="user-input" data-to="skillshelf-orchestrator"/>
-    <text x="323" y="157" text-anchor="middle" class="edge-label">COMPLETE REQUEST</text>
-    <path class="solid" d="M1250 170 H1304" data-from="skillshelf-orchestrator" data-to="final-response"/>
-    <text x="1277" y="157" text-anchor="middle" class="edge-label">VERIFIED SYNTHESIS</text>
-
-    <path class="solid" d="M446 306 V342 H179 V438" data-from="skillshelf-orchestrator" data-to="find-skills-agent"/>
-    <path class="solid" d="M620 306 V358 H489 V438" data-from="skillshelf-orchestrator" data-to="superpowers-agent"/>
-    <path class="solid" d="M800 306 V374 H799 V438" data-from="skillshelf-orchestrator" data-to="memory-agent"/>
-    <path class="solid" d="M980 306 V358 H1109 V438" data-from="skillshelf-orchestrator" data-to="design-intelligence-agent"/>
-    <path class="solid" d="M1154 306 V342 H1419 V438" data-from="skillshelf-orchestrator" data-to="skill-governor-agent"/>
-
-    <path class="return" d="M194 438 V330 H480 V306" data-from="find-skills-agent" data-to="skillshelf-orchestrator"/>
-    <path class="return" d="M504 438 V346 H646 V306" data-from="superpowers-agent" data-to="skillshelf-orchestrator"/>
-    <path class="return" d="M814 438 V362 H826 V306" data-from="memory-agent" data-to="skillshelf-orchestrator"/>
-    <path class="return" d="M1124 438 V346 H1006 V306" data-from="design-intelligence-agent" data-to="skillshelf-orchestrator"/>
-    <path class="return" d="M1434 438 V330 H1120 V306" data-from="skill-governor-agent" data-to="skillshelf-orchestrator"/>
-
-    <text x="179" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
-    <text x="489" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
-    <text x="799" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
-    <text x="1109" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ RESULT</text>
-    <text x="1419" y="412" text-anchor="middle" class="edge-label">DELEGATION ↓  ↑ GOVERNANCE</text>
+  <rect width="960" height="2014" fill="#F6F8FB"/>
+<text x="40" y="48" font-family="Segoe UI,Arial,sans-serif" font-size="31" font-weight="700" fill="#102A43" text-anchor="start" data-background="#F6F8FB"><tspan x="40" dy="0">SkillShelf agent workflow: detailed contract</tspan></text>
+  <g id="user-input" data-qa-box="true" aria-label="User request"><rect x="40" y="86" width="190" height="126" rx="14" fill="#FFFFFF" stroke="#486581" stroke-width="2"/>
+  <text x="135" y="132" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#102A43" text-anchor="middle" data-background="#FFFFFF"><tspan x="135" dy="0">User request</tspan></text>
   </g>
-
-  <g id="user-input" aria-label="User task request">
-    <rect x="28" y="91" width="268" height="158" rx="14" fill="#FFFFFF" stroke="#75879A" stroke-width="2"/>
-    <circle cx="64" cy="128" r="16" fill="#E8F1FA" stroke="#173B63" stroke-width="2"/>
-    <circle cx="64" cy="123" r="5" fill="#173B63"/>
-    <path d="M53 143 Q64 133 75 143" fill="none" stroke="#173B63" stroke-width="2"/>
-    <text x="90" y="125" class="node-title">User / Task Request</text>
-    <text x="48" y="166" class="copy">Goal · Context · Constraints</text>
-    <text x="48" y="187" class="copy">Files · Approval authority</text>
-    <rect x="48" y="207" width="188" height="25" rx="12" fill="#EEF3F8"/>
-    <text x="142" y="224" text-anchor="middle" class="small">One complete request contract</text>
+  <g id="skillshelf-master" data-qa-box="true" aria-label="SkillShelf Master"><rect x="286" y="76" width="388" height="172" rx="14" fill="#E3EFF9" stroke="#486581" stroke-width="2"/>
+  <text x="480" y="122" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#102A43" text-anchor="middle" data-background="#E3EFF9"><tspan x="480" dy="0">SkillShelf Master</tspan></text>
+  <text x="480" y="188" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="middle" data-background="#E3EFF9"><tspan x="480" dy="0">Route the smallest sufficient set</tspan><tspan x="480" dy="27">Enforce budgets and approvals</tspan></text>
   </g>
-
-  <g id="skillshelf-orchestrator" aria-label="Central SkillShelf orchestrator">
-    <rect x="350" y="53" width="900" height="253" rx="22" fill="#E8F1FA" stroke="#173B63" stroke-width="3"/>
-    <path d="M350 119 H1250" stroke="#B8CCE0" stroke-width="1.5"/>
-    <text x="382" y="88" class="master-title">SkillShelf Orchestrator</text>
-    <text x="382" y="109" class="subtitle">SkillShelf Master · SkillShelfMaster · Central brain</text>
-
-    <g aria-label="Command core geometry" fill="none" stroke="#173B63" stroke-width="2">
-      <circle cx="1168" cy="84" r="11" fill="#FFFFFF"/>
-      <circle cx="1204" cy="84" r="7" fill="#FFFFFF"/>
-      <circle cx="1134" cy="84" r="7" fill="#FFFFFF"/>
-      <path d="M1141 84 H1157 M1179 84 H1197 M1168 95 V108"/>
-      <circle cx="1168" cy="108" r="5" fill="#173B63"/>
-    </g>
-
-    <text x="382" y="148" class="master-copy">1. Interpret complete user goal</text>
-    <text x="382" y="174" class="master-copy">2. Classify intent and risk</text>
-    <text x="382" y="200" class="master-copy">3. Select smallest sufficient specialist set</text>
-    <text x="382" y="226" class="master-copy">4. Build bounded delegation briefs</text>
-    <text x="765" y="148" class="master-copy">5. Enforce tool, approval and token limits</text>
-    <text x="765" y="174" class="master-copy">6. Reconcile structured evidence</text>
-    <text x="765" y="200" class="master-copy">7. Return final user-facing response</text>
-
-    <g aria-label="Orchestration responsibilities">
-      <rect x="765" y="218" width="76" height="26" rx="13" fill="#FFFFFF" stroke="#9DB7D0"/><text x="803" y="235" text-anchor="middle" class="pill">Routing</text>
-      <rect x="849" y="218" width="112" height="26" rx="13" fill="#FFFFFF" stroke="#9DB7D0"/><text x="905" y="235" text-anchor="middle" class="pill">Context control</text>
-      <rect x="969" y="218" width="75" height="26" rx="13" fill="#FFFFFF" stroke="#9DB7D0"/><text x="1006" y="235" text-anchor="middle" class="pill">Budgets</text>
-      <rect x="1052" y="218" width="84" height="26" rx="13" fill="#FFFFFF" stroke="#9DB7D0"/><text x="1094" y="235" text-anchor="middle" class="pill">Approvals</text>
-      <rect x="1144" y="218" width="78" height="26" rx="13" fill="#FFFFFF" stroke="#9DB7D0"/><text x="1183" y="235" text-anchor="middle" class="pill">Evidence</text>
-      <rect x="765" y="253" width="146" height="26" rx="13" fill="#173B63"/><text x="838" y="270" text-anchor="middle" style="font:700 10.5px Inter,'Segoe UI',Arial,sans-serif;fill:#FFFFFF">FINAL SYNTHESIS</text>
-    </g>
-    <text x="1222" y="273" text-anchor="end" class="small">Smallest sufficient specialist set only</text>
+  <g id="final-response" data-qa-box="true" aria-label="Final response"><rect x="730" y="86" width="190" height="126" rx="14" fill="#FFFFFF" stroke="#486581" stroke-width="2"/>
+  <text x="825" y="132" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#102A43" text-anchor="middle" data-background="#FFFFFF"><tspan x="825" dy="0">Final response</tspan></text>
   </g>
-
-  <g id="final-response" aria-label="Final structured response">
-    <rect x="1304" y="91" width="268" height="158" rx="14" fill="#FFFFFF" stroke="#173B63" stroke-width="2.5"/>
-    <circle cx="1340" cy="128" r="16" fill="#E8F1FA" stroke="#173B63" stroke-width="2"/>
-    <path d="M1332 128 L1338 134 L1349 121" fill="none" stroke="#173B63" stroke-width="2.5"/>
-    <text x="1366" y="125" class="node-title">Final Structured</text>
-    <text x="1366" y="146" class="node-title">Response</text>
-    <text x="1324" y="178" class="copy">Answer · Evidence · Files changed</text>
-    <text x="1324" y="199" class="copy">Tests · Usage · Risks · Next action</text>
-    <text x="1438" y="229" text-anchor="middle" class="small">Orchestrator is final authority</text>
+  <path d="M230 149H286" fill="none" stroke="#486581" stroke-width="3" marker-end="url(#arrow-delegation)" data-from="user-input" data-to="skillshelf-master" data-kind="input"/>
+  <path d="M674 149H730" fill="none" stroke="#486581" stroke-width="3" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="final-response" data-kind="final"/>
+  <path d="M360 248H18V480H68" fill="none" stroke="#486581" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="find-skills-agent" data-kind="delegation"/>
+  <path d="M892 480H942V248H600" fill="none" stroke="#075985" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-return)" data-from="find-skills-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="find-skills-agent" data-qa-box="true" aria-label="Find Skills Agent"><rect x="68" y="342" width="824" height="276" rx="14" fill="#FFFFFF" stroke="#486581" stroke-width="2"/>
+  <text x="94" y="382" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#102A43" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Find Skills Agent</tspan></text>
+  <text x="866" y="381" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#334E68" text-anchor="end" data-background="#FFFFFF"><tspan x="866" dy="0">find-skills-codex / SpecialistResult</tspan></text>
+  <path d="M68 404H892M342 404V600M617 404V600" fill="none" stroke="#D9E7F2" stroke-width="2"/>
+  <text x="94" y="434" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">INPUT</tspan></text>
+  <text x="94" y="465" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Task and success</tspan><tspan x="94" dy="23">criteria</tspan></text>
+  <text x="94" y="521" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Relevant paths and</tspan><tspan x="94" dy="23">context</tspan></text>
+  <text x="94" y="577" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Authority: Read Files</tspan></text>
+  <text x="368" y="434" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">PROCESS</tspan></text>
+  <text x="368" y="465" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Load find-skills-codex</tspan></text>
+  <text x="368" y="521" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Invoke Find Skills</tspan><tspan x="368" dy="23">Specialist</tspan></text>
+  <text x="368" y="577" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Record tool and usage</tspan><tspan x="368" dy="23">evidence</tspan></text>
+  <text x="643" y="434" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">OUTPUT</tspan></text>
+  <text x="643" y="465" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">SpecialistResult</tspan></text>
+  <text x="643" y="521" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Findings and artifacts</tspan></text>
+  <text x="643" y="577" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Tests, risks, next</tspan><tspan x="643" dy="23">action</tspan></text>
   </g>
-
-  <g id="find-skills-agent" aria-label="Find Skills Agent input process and output">
-    <rect x="34" y="438" width="290" height="546" rx="14" fill="#FFFFFF" stroke="#1F6F8B" stroke-width="2"/>
-    <rect x="34" y="438" width="290" height="62" rx="14" fill="#E7F4F7"/>
-    <path d="M34 486 V500 H324 V486" fill="#E7F4F7"/>
-    <circle cx="62" cy="468" r="10" fill="none" stroke="#1F6F8B" stroke-width="2.5"/><path d="M70 476 L79 485" stroke="#1F6F8B" stroke-width="3"/>
-    <rect x="70" y="473" width="15" height="13" rx="2" fill="#FFFFFF" stroke="#1F6F8B"/><path d="M74 479 L77 482 L82 476" fill="none" stroke="#1F6F8B" stroke-width="1.5"/>
-    <text x="96" y="466" class="agent-title">Find Skills Agent</text>
-    <text x="96" y="484" class="skill">find-skills-codex</text>
-    <text x="52" y="525" class="section">INPUT</text>
-    <text x="52" y="548" class="copy">• Required capability or task</text>
-    <text x="52" y="566" class="copy">• Platform and environment</text>
-    <text x="52" y="584" class="copy">• Installed skills</text>
-    <text x="52" y="602" class="copy">• Security, licence and scope</text>
-    <path d="M179 612 V626" class="solid"/>
-    <line x1="46" y1="633" x2="312" y2="633" class="divider"/>
-    <text x="52" y="657" class="section">AGENT PROCESS</text>
-    <text x="52" y="680" class="copy">1. Define exact capability gap</text>
-    <text x="52" y="698" class="copy">2. Search trusted sources</text>
-    <text x="52" y="716" class="copy">3. Pin immutable candidates</text>
-    <text x="52" y="734" class="copy">4. Inspect instructions and files</text>
-    <text x="52" y="752" class="copy">5. Audit hooks, MCP and licences</text>
-    <text x="52" y="770" class="copy">6. Score security and compatibility</text>
-    <text x="52" y="788" class="copy">7. Reject unsafe candidates</text>
-    <text x="52" y="806" class="copy">8. Return options and trade-offs</text>
-    <path d="M179 816 V830" class="solid"/>
-    <line x1="46" y1="837" x2="312" y2="837" class="divider"/>
-    <text x="52" y="861" class="section">OUTPUT</text>
-    <text x="52" y="884" class="copy">• Ranked verified candidates</text>
-    <text x="52" y="902" class="copy">• Source and version evidence</text>
-    <text x="52" y="920" class="copy">• Security and compatibility</text>
-    <text x="52" y="938" class="copy">• Guidance and limitations</text>
-    <rect x="52" y="950" width="254" height="24" rx="12" fill="#E7F4F7"/>
-    <text x="179" y="966" text-anchor="middle" class="small">Verified discovery result</text>
+  <path d="M360 248H25V790H68" fill="none" stroke="#486581" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="superpowers-agent" data-kind="delegation"/>
+  <path d="M892 790H935V248H600" fill="none" stroke="#075985" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-return)" data-from="superpowers-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="superpowers-agent" data-qa-box="true" aria-label="Superpowers Agent"><rect x="68" y="652" width="824" height="276" rx="14" fill="#FFFFFF" stroke="#486581" stroke-width="2"/>
+  <text x="94" y="692" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#102A43" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Superpowers Agent</tspan></text>
+  <text x="866" y="691" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#334E68" text-anchor="end" data-background="#FFFFFF"><tspan x="866" dy="0">superpowers-codex / SpecialistResult</tspan></text>
+  <path d="M68 714H892M342 714V910M617 714V910" fill="none" stroke="#D9E7F2" stroke-width="2"/>
+  <text x="94" y="744" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">INPUT</tspan></text>
+  <text x="94" y="775" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Task and success</tspan><tspan x="94" dy="23">criteria</tspan></text>
+  <text x="94" y="831" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Relevant paths and</tspan><tspan x="94" dy="23">context</tspan></text>
+  <text x="94" y="887" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Authority: Read Files</tspan></text>
+  <text x="368" y="744" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">PROCESS</tspan></text>
+  <text x="368" y="775" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Load superpowers-codex</tspan></text>
+  <text x="368" y="831" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Invoke Software</tspan><tspan x="368" dy="23">Methodology Specialist</tspan></text>
+  <text x="368" y="887" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Record tool and usage</tspan><tspan x="368" dy="23">evidence</tspan></text>
+  <text x="643" y="744" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">OUTPUT</tspan></text>
+  <text x="643" y="775" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">SpecialistResult</tspan></text>
+  <text x="643" y="831" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Findings and artifacts</tspan></text>
+  <text x="643" y="887" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Tests, risks, next</tspan><tspan x="643" dy="23">action</tspan></text>
   </g>
-
-  <g id="superpowers-agent" aria-label="Superpowers Agent input process and output">
-    <rect x="344" y="438" width="290" height="546" rx="14" fill="#FFFFFF" stroke="#5B4DB2" stroke-width="2"/>
-    <rect x="344" y="438" width="290" height="62" rx="14" fill="#F0EDFC"/>
-    <path d="M344 486 V500 H634 V486" fill="#F0EDFC"/>
-    <path d="M365 460 L356 469 L365 478 M385 460 L394 469 L385 478" fill="none" stroke="#5B4DB2" stroke-width="2.5"/>
-    <path d="M369 482 L375 488 L386 477" fill="none" stroke="#5B4DB2" stroke-width="2.5"/>
-    <text x="406" y="466" class="agent-title">Superpowers Agent</text>
-    <text x="406" y="484" class="skill">superpowers-codex</text>
-    <text x="362" y="525" class="section">INPUT</text>
-    <text x="362" y="548" class="copy">• Feature, bug or failing test</text>
-    <text x="362" y="566" class="copy">• Repository context</text>
-    <text x="362" y="584" class="copy">• Acceptance criteria</text>
-    <text x="362" y="602" class="copy">• Relevant files and constraints</text>
-    <path d="M489 612 V626" class="solid"/>
-    <line x1="356" y1="633" x2="622" y2="633" class="divider"/>
-    <text x="362" y="657" class="section">AGENT PROCESS</text>
-    <text x="362" y="680" class="copy">1. Classify delivery task</text>
-    <text x="362" y="698" class="copy">2. Inspect current behaviour</text>
-    <text x="362" y="716" class="copy">3. Explore constraints and edges</text>
-    <text x="362" y="734" class="copy">4. Create implementation plan</text>
-    <text x="362" y="752" class="copy">5. Apply TDD where relevant</text>
-    <text x="362" y="770" class="copy">6. Modify authorised files</text>
-    <text x="362" y="788" class="copy">7. Test, lint and verify</text>
-    <text x="362" y="806" class="copy">8. Review before completion</text>
-    <path d="M489 816 V830" class="solid"/>
-    <line x1="356" y1="837" x2="622" y2="837" class="divider"/>
-    <text x="362" y="861" class="section">OUTPUT</text>
-    <text x="362" y="884" class="copy">• Working code or patch</text>
-    <text x="362" y="902" class="copy">• Changed-file evidence</text>
-    <text x="362" y="920" class="copy">• Tests and review findings</text>
-    <text x="362" y="938" class="copy">• Risks and recovery</text>
-    <rect x="362" y="950" width="254" height="24" rx="12" fill="#F0EDFC"/>
-    <text x="489" y="966" text-anchor="middle" class="small">Verified delivery result</text>
+  <path d="M360 248H32V1100H68" fill="none" stroke="#486581" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="memory-agent" data-kind="delegation"/>
+  <path d="M892 1100H928V248H600" fill="none" stroke="#075985" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-return)" data-from="memory-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="memory-agent" data-qa-box="true" aria-label="Memory Agent"><rect x="68" y="962" width="824" height="276" rx="14" fill="#FFFFFF" stroke="#486581" stroke-width="2"/>
+  <text x="94" y="1002" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#102A43" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Memory Agent</tspan></text>
+  <text x="866" y="1001" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#334E68" text-anchor="end" data-background="#FFFFFF"><tspan x="866" dy="0">codex-memory / SpecialistResult</tspan></text>
+  <path d="M68 1024H892M342 1024V1220M617 1024V1220" fill="none" stroke="#D9E7F2" stroke-width="2"/>
+  <text x="94" y="1054" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">INPUT</tspan></text>
+  <text x="94" y="1085" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Task and success</tspan><tspan x="94" dy="23">criteria</tspan></text>
+  <text x="94" y="1141" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Relevant paths and</tspan><tspan x="94" dy="23">context</tspan></text>
+  <text x="94" y="1197" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Authority: Search</tspan><tspan x="94" dy="23">Memory Index</tspan></text>
+  <text x="368" y="1054" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">PROCESS</tspan></text>
+  <text x="368" y="1085" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Load codex-memory</tspan></text>
+  <text x="368" y="1141" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Invoke Project Memory</tspan><tspan x="368" dy="23">Specialist</tspan></text>
+  <text x="368" y="1197" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Record tool and usage</tspan><tspan x="368" dy="23">evidence</tspan></text>
+  <text x="643" y="1054" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">OUTPUT</tspan></text>
+  <text x="643" y="1085" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">SpecialistResult</tspan></text>
+  <text x="643" y="1141" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Findings and artifacts</tspan></text>
+  <text x="643" y="1197" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Tests, risks, next</tspan><tspan x="643" dy="23">action</tspan></text>
   </g>
-
-  <g id="memory-agent" aria-label="Memory Agent input process and output">
-    <rect x="654" y="438" width="290" height="546" rx="14" fill="#FFFFFF" stroke="#2F7D65" stroke-width="2"/>
-    <rect x="654" y="438" width="290" height="62" rx="14" fill="#EAF6F1"/>
-    <path d="M654 486 V500 H944 V486" fill="#EAF6F1"/>
-    <ellipse cx="679" cy="460" rx="15" ry="6" fill="#FFFFFF" stroke="#2F7D65" stroke-width="2"/>
-    <path d="M664 460 V479 C664 486 694 486 694 479 V460 M664 470 C664 477 694 477 694 470" fill="none" stroke="#2F7D65" stroke-width="2"/>
-    <circle cx="702" cy="462" r="3" fill="#2F7D65"/><circle cx="710" cy="470" r="3" fill="#2F7D65"/><path d="M702 462 L710 470" stroke="#2F7D65"/>
-    <text x="716" y="466" class="agent-title">Memory Agent</text>
-    <text x="716" y="484" class="skill">codex-memory</text>
-    <text x="672" y="525" class="section">INPUT</text>
-    <text x="672" y="548" class="copy">• Project identity and recall question</text>
-    <text x="672" y="566" class="copy">• Time or topic filters</text>
-    <text x="672" y="584" class="copy">• Relevant session context</text>
-    <text x="672" y="602" class="copy">• Privacy and project scope</text>
-    <path d="M799 612 V626" class="solid"/>
-    <line x1="666" y1="633" x2="932" y2="633" class="divider"/>
-    <text x="672" y="657" class="section">AGENT PROCESS</text>
-    <text x="672" y="680" class="copy">1. Search compact memory index</text>
-    <text x="672" y="698" class="copy">2. Filter by relevance</text>
-    <text x="672" y="716" class="copy">3. Build a bounded timeline</text>
-    <text x="672" y="734" class="copy">4. Fetch selected observations</text>
-    <text x="672" y="752" class="copy">5. Exclude secrets and private data</text>
-    <text x="672" y="770" class="copy">6. Separate evidence from inference</text>
-    <text x="672" y="788" class="copy">7. Compress findings for use</text>
-    <path d="M799 798 V830" class="solid"/>
-    <line x1="666" y1="837" x2="932" y2="837" class="divider"/>
-    <text x="672" y="861" class="section">OUTPUT</text>
-    <text x="672" y="884" class="copy">• Prior decisions and history</text>
-    <text x="672" y="902" class="copy">• Selected observations</text>
-    <text x="672" y="920" class="copy">• Timeline and confidence</text>
-    <text x="672" y="938" class="copy">• Source distinctions</text>
-    <rect x="672" y="950" width="254" height="24" rx="12" fill="#EAF6F1"/>
-    <text x="799" y="966" text-anchor="middle" class="small">Bounded memory context</text>
+  <path d="M360 248H39V1410H68" fill="none" stroke="#486581" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="design-intelligence-agent" data-kind="delegation"/>
+  <path d="M892 1410H921V248H600" fill="none" stroke="#075985" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-return)" data-from="design-intelligence-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="design-intelligence-agent" data-qa-box="true" aria-label="Design Intelligence Agent"><rect x="68" y="1272" width="824" height="276" rx="14" fill="#FFFFFF" stroke="#486581" stroke-width="2"/>
+  <text x="94" y="1312" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#102A43" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Design Intelligence Agent</tspan></text>
+  <text x="866" y="1311" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#334E68" text-anchor="end" data-background="#FFFFFF"><tspan x="866" dy="0">codex-design-intelligence / SpecialistResult</tspan></text>
+  <path d="M68 1334H892M342 1334V1530M617 1334V1530" fill="none" stroke="#D9E7F2" stroke-width="2"/>
+  <text x="94" y="1364" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">INPUT</tspan></text>
+  <text x="94" y="1395" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Task and success</tspan><tspan x="94" dy="23">criteria</tspan></text>
+  <text x="94" y="1451" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Relevant paths and</tspan><tspan x="94" dy="23">context</tspan></text>
+  <text x="94" y="1507" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Authority: Read Files</tspan></text>
+  <text x="368" y="1364" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">PROCESS</tspan></text>
+  <text x="368" y="1395" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Load</tspan><tspan x="368" dy="23">codex-design-intelligence</tspan></text>
+  <text x="368" y="1451" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Invoke Design</tspan><tspan x="368" dy="23">Intelligence Specialist</tspan></text>
+  <text x="368" y="1507" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Record tool and usage</tspan><tspan x="368" dy="23">evidence</tspan></text>
+  <text x="643" y="1364" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">OUTPUT</tspan></text>
+  <text x="643" y="1395" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">SpecialistResult</tspan></text>
+  <text x="643" y="1451" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Findings and artifacts</tspan></text>
+  <text x="643" y="1507" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Tests, risks, next</tspan><tspan x="643" dy="23">action</tspan></text>
   </g>
-
-  <g id="design-intelligence-agent" aria-label="Design Intelligence Agent input process and output">
-    <rect x="964" y="438" width="290" height="546" rx="14" fill="#FFFFFF" stroke="#A14E78" stroke-width="2"/>
-    <rect x="964" y="438" width="290" height="62" rx="14" fill="#FAEDF3"/>
-    <path d="M964 486 V500 H1254 V486" fill="#FAEDF3"/>
-    <rect x="984" y="456" width="31" height="24" rx="3" fill="#FFFFFF" stroke="#A14E78" stroke-width="2"/>
-    <path d="M992 486 L1005 473 M1002 489 L1008 483" stroke="#A14E78" stroke-width="2.5"/>
-    <circle cx="1012" cy="457" r="4" fill="#A14E78"/>
-    <text x="1026" y="466" class="agent-title">Design Intelligence Agent</text>
-    <text x="1026" y="484" class="skill">codex-design-intelligence</text>
-    <text x="982" y="525" class="section">INPUT</text>
-    <text x="982" y="548" class="copy">• Product or interface brief</text>
-    <text x="982" y="566" class="copy">• Frontend and design system</text>
-    <text x="982" y="584" class="copy">• References and accessibility</text>
-    <text x="982" y="602" class="copy">• Platform and viewport</text>
-    <path d="M1109 612 V626" class="solid"/>
-    <line x1="976" y1="633" x2="1242" y2="633" class="divider"/>
-    <text x="982" y="657" class="section">AGENT PROCESS</text>
-    <text x="982" y="680" class="copy">1. Inspect product truth and UI</text>
-    <text x="982" y="698" class="copy">2. Select surface mode</text>
-    <text x="982" y="716" class="copy">3. Apply product/UX structure</text>
-    <text x="982" y="734" class="copy">4. Apply bounded visual direction</text>
-    <text x="982" y="752" class="copy">5. Preserve function and content</text>
-    <text x="982" y="770" class="copy">6. Audit a11y and responsiveness</text>
-    <text x="982" y="788" class="copy">7. Implement bounded changes</text>
-    <text x="982" y="806" class="copy">8. Consolidated visual/tech review</text>
-    <path d="M1109 816 V830" class="solid"/>
-    <line x1="976" y1="837" x2="1242" y2="837" class="divider"/>
-    <text x="982" y="861" class="section">OUTPUT</text>
-    <text x="982" y="884" class="copy">• Implementation or guidance</text>
-    <text x="982" y="902" class="copy">• Accessibility and usability</text>
-    <text x="982" y="920" class="copy">• Responsive and visual evidence</text>
-    <text x="982" y="938" class="copy">• Remaining design risks</text>
-    <rect x="982" y="950" width="254" height="24" rx="12" fill="#FAEDF3"/>
-    <text x="1109" y="966" text-anchor="middle" class="small">Verified design result</text>
+  <path d="M360 248H46V1720H68" fill="none" stroke="#486581" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="skill-governor-agent" data-kind="delegation"/>
+  <path d="M892 1720H914V248H600" fill="none" stroke="#075985" stroke-width="2.5" stroke-dasharray="8 7" marker-end="url(#arrow-return)" data-from="skill-governor-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="skill-governor-agent" data-qa-box="true" aria-label="Skill Governor Agent"><rect x="68" y="1582" width="824" height="276" rx="14" fill="#FFFFFF" stroke="#486581" stroke-width="2"/>
+  <text x="94" y="1622" font-family="Segoe UI,Arial,sans-serif" font-size="26" font-weight="700" fill="#102A43" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Skill Governor Agent</tspan></text>
+  <text x="866" y="1621" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#334E68" text-anchor="end" data-background="#FFFFFF"><tspan x="866" dy="0">codex-skill-governor / GovernanceResult</tspan></text>
+  <path d="M68 1644H892M342 1644V1840M617 1644V1840" fill="none" stroke="#D9E7F2" stroke-width="2"/>
+  <text x="94" y="1674" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">INPUT</tspan></text>
+  <text x="94" y="1705" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Task and success</tspan><tspan x="94" dy="23">criteria</tspan></text>
+  <text x="94" y="1761" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Relevant paths and</tspan><tspan x="94" dy="23">context</tspan></text>
+  <text x="94" y="1817" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="94" dy="0">Authority: Read Agent</tspan><tspan x="94" dy="23">Events</tspan></text>
+  <text x="368" y="1674" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">PROCESS</tspan></text>
+  <text x="368" y="1705" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Load</tspan><tspan x="368" dy="23">codex-skill-governor</tspan></text>
+  <text x="368" y="1761" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Invoke Skill Governance</tspan><tspan x="368" dy="23">Specialist</tspan></text>
+  <text x="368" y="1817" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="368" dy="0">Record tool and usage</tspan><tspan x="368" dy="23">evidence</tspan></text>
+  <text x="643" y="1674" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="700" fill="#075985" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">OUTPUT</tspan></text>
+  <text x="643" y="1705" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">GovernanceResult</tspan></text>
+  <text x="643" y="1761" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Findings and artifacts</tspan></text>
+  <text x="643" y="1817" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#334E68" text-anchor="start" data-background="#FFFFFF"><tspan x="643" dy="0">Tests, risks, next</tspan><tspan x="643" dy="23">action</tspan></text>
   </g>
-
-  <g id="skill-governor-agent" aria-label="Skill Governor Agent input process and output">
-    <rect x="1274" y="438" width="290" height="546" rx="14" fill="#FFFFFF" stroke="#9A642D" stroke-width="2"/>
-    <rect x="1274" y="438" width="290" height="62" rx="14" fill="#FAF1E7"/>
-    <path d="M1274 486 V500 H1564 V486" fill="#FAF1E7"/>
-    <path d="M1303 454 L1318 460 V471 C1318 480 1311 486 1303 490 C1295 486 1288 480 1288 471 V460 Z" fill="#FFFFFF" stroke="#9A642D" stroke-width="2"/>
-    <path d="M1296 471 L1301 476 L1311 465" fill="none" stroke="#9A642D" stroke-width="2"/>
-    <text x="1336" y="466" class="agent-title">Skill Governor Agent</text>
-    <text x="1336" y="484" class="skill">codex-skill-governor</text>
-    <text x="1292" y="525" class="section">INPUT</text>
-    <text x="1292" y="548" class="copy">• Execution observations</text>
-    <text x="1292" y="566" class="copy">• Failures and user corrections</text>
-    <text x="1292" y="584" class="copy">• Evaluation failures</text>
-    <text x="1292" y="602" class="copy">• Reusable improvement candidates</text>
-    <path d="M1419 612 V626" class="solid"/>
-    <line x1="1286" y1="633" x2="1552" y2="633" class="divider"/>
-    <text x="1292" y="657" class="section">AGENT PROCESS</text>
-    <text x="1292" y="680" class="copy">1. Read compact evidence</text>
-    <text x="1292" y="698" class="copy">2. Separate method from history</text>
-    <text x="1292" y="716" class="copy">3. Validate evidence and scope</text>
-    <text x="1292" y="734" class="copy">4. Detect gaps and contradictions</text>
-    <text x="1292" y="752" class="copy">5. Stage a complete proposal</text>
-    <text x="1292" y="770" class="copy">6. Run structural/behavioural evals</text>
-    <text x="1292" y="788" class="copy">7. Record regression risks</text>
-    <text x="1292" y="806" class="copy">8. Wait for explicit approval</text>
-    <path d="M1419 816 V830" class="solid"/>
-    <line x1="1286" y1="837" x2="1552" y2="837" class="divider"/>
-    <text x="1292" y="861" class="section">OUTPUT</text>
-    <text x="1292" y="884" class="copy">• Governance observations</text>
-    <text x="1292" y="902" class="copy">• Principles and staged proposals</text>
-    <text x="1292" y="920" class="copy">• Evaluation and regression report</text>
-    <text x="1292" y="938" class="copy">• Approval-safe upgrade path</text>
-    <rect x="1292" y="950" width="254" height="24" rx="12" fill="#FAF1E7"/>
-    <text x="1419" y="966" text-anchor="middle" class="small">Structured GovernanceResult</text>
-  </g>
-
-  <g id="legend" aria-label="Connector legend">
-    <line x1="38" y1="1020" x2="88" y2="1020" class="solid"/>
-    <text x="100" y="1024" class="small">Solid — delegation or execution</text>
-    <line x1="312" y1="1020" x2="362" y2="1020" class="return"/>
-    <text x="374" y="1024" class="small">Dashed — structured result and evidence return</text>
-    <text x="1564" y="1024" text-anchor="end" class="small">Every specialist returns to the orchestrator · no direct final-response path</text>
-  </g>
+  <g id="legend" data-qa-box="true"><rect x="70" y="1900" width="820" height="52" rx="10" fill="#D9E7F2"/><text x="480" y="1934" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#102A43" text-anchor="middle" data-background="#D9E7F2"><tspan x="480" dy="0">Solid: DelegationInput  |  Dashed: structured result  |  Master owns final response</tspan></text></g>
 </svg>

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 564" role="img" aria-labelledby="workflow-title workflow-desc">
+  <title id="workflow-title">SkillShelf registry-driven agent workflow overview</title>
+  <desc id="workflow-desc">A user request enters the central SkillShelf Master, which delegates bounded work to registry-defined specialists, reconciles their structured returns, and produces one verified response.</desc>
+  <defs>
+    <marker id="arrow-delegation" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#A8C5D8"/></marker>
+    <marker id="arrow-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#8DD3F4"/></marker>
+  </defs>
+  <rect width="960" height="564" fill="#091522"/>
+<text x="32" y="42" font-family="Segoe UI,Arial,sans-serif" font-size="30" font-weight="700" fill="#F5F9FC" text-anchor="start" data-background="#091522"><tspan x="32" dy="0">SkillShelf agent workflow</tspan></text>
+  <text x="928" y="40" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#C7D8E6" text-anchor="end" data-background="#091522"><tspan x="928" dy="0">REGISTRY-DRIVEN</tspan></text>
+  <g id="user-input" data-qa-box="true" aria-label="User request"><rect x="24" y="80" width="200" height="116" rx="14" fill="#13263A" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="124" y="126" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#13263A"><tspan x="124" dy="0">User request</tspan></text>
+  </g>
+  <g id="skillshelf-master" data-qa-box="true" aria-label="SkillShelf Master"><rect x="280" y="64" width="400" height="148" rx="14" fill="#183B59" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="480" y="110" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#183B59"><tspan x="480" dy="0">SkillShelf Master</tspan></text>
+  <text x="480" y="176" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="500" fill="#C7D8E6" text-anchor="middle" data-background="#183B59"><tspan x="480" dy="0">Routes, governs, reconciles</tspan></text>
+  </g>
+  <g id="final-response" data-qa-box="true" aria-label="Verified response"><rect x="736" y="80" width="200" height="116" rx="14" fill="#13263A" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="836" y="126" font-family="Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#13263A"><tspan x="836" dy="0">Verified</tspan><tspan x="836" dy="29">response</tspan></text>
+  </g>
+  <g id="connections" fill="none" stroke="#A8C5D8" stroke-width="3"><path d="M224 138H280" marker-end="url(#arrow-delegation)" data-from="user-input" data-to="skillshelf-master" data-kind="input"/><path d="M680 138H736" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="final-response" data-kind="final"/></g>
+  <g id="specialists" aria-label="Bounded specialist agents">
+  <path d="M326 212V278H106V316" fill="none" stroke="#A8C5D8" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="find-skills-agent" data-kind="delegation"/>
+  <path d="M117 316V292H337V212" fill="none" stroke="#8DD3F4" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrow-return)" data-from="find-skills-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="find-skills-agent" data-qa-box="true" aria-label="Find Skills Agent"><rect x="20" y="316" width="172" height="172" rx="12" fill="#13263A" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="106" y="356" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#13263A"><tspan x="106" dy="0">Find Skills</tspan><tspan x="106" dy="26">Agent</tspan></text>
+  <text x="106" y="424" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#C7D8E6" text-anchor="middle" data-background="#13263A"><tspan x="106" dy="0">find-skills-</tspan><tspan x="106" dy="25">codex</tspan></text>
+  </g>
+  <path d="M403 212V278H293V316" fill="none" stroke="#A8C5D8" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="superpowers-agent" data-kind="delegation"/>
+  <path d="M304 316V292H414V212" fill="none" stroke="#8DD3F4" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrow-return)" data-from="superpowers-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="superpowers-agent" data-qa-box="true" aria-label="Superpowers Agent"><rect x="207" y="316" width="172" height="172" rx="12" fill="#13263A" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="293" y="356" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#13263A"><tspan x="293" dy="0">Superpowers</tspan><tspan x="293" dy="26">Agent</tspan></text>
+  <text x="293" y="424" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#C7D8E6" text-anchor="middle" data-background="#13263A"><tspan x="293" dy="0">superpowers-</tspan><tspan x="293" dy="25">codex</tspan></text>
+  </g>
+  <path d="M480 212V278H480V316" fill="none" stroke="#A8C5D8" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="memory-agent" data-kind="delegation"/>
+  <path d="M491 316V292H491V212" fill="none" stroke="#8DD3F4" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrow-return)" data-from="memory-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="memory-agent" data-qa-box="true" aria-label="Memory Agent"><rect x="394" y="316" width="172" height="172" rx="12" fill="#13263A" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="480" y="356" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#13263A"><tspan x="480" dy="0">Memory Agent</tspan></text>
+  <text x="480" y="398" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#C7D8E6" text-anchor="middle" data-background="#13263A"><tspan x="480" dy="0">codex-memory</tspan></text>
+  </g>
+  <path d="M557 212V278H667V316" fill="none" stroke="#A8C5D8" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="design-intelligence-agent" data-kind="delegation"/>
+  <path d="M678 316V292H568V212" fill="none" stroke="#8DD3F4" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrow-return)" data-from="design-intelligence-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="design-intelligence-agent" data-qa-box="true" aria-label="Design Intelligence Agent"><rect x="581" y="316" width="172" height="172" rx="12" fill="#13263A" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="667" y="356" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#13263A"><tspan x="667" dy="0">Design</tspan><tspan x="667" dy="26">Intelligence</tspan><tspan x="667" dy="26">Agent</tspan></text>
+  <text x="667" y="450" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#C7D8E6" text-anchor="middle" data-background="#13263A"><tspan x="667" dy="0">codex-design-</tspan><tspan x="667" dy="25">intelligence</tspan></text>
+  </g>
+  <path d="M634 212V278H854V316" fill="none" stroke="#A8C5D8" stroke-width="2.5" marker-end="url(#arrow-delegation)" data-from="skillshelf-master" data-to="skill-governor-agent" data-kind="delegation"/>
+  <path d="M865 316V292H645V212" fill="none" stroke="#8DD3F4" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#arrow-return)" data-from="skill-governor-agent" data-to="skillshelf-master" data-kind="return"/>
+  <g id="skill-governor-agent" data-qa-box="true" aria-label="Skill Governor Agent"><rect x="768" y="316" width="172" height="172" rx="12" fill="#13263A" stroke="#A8C5D8" stroke-width="2"/>
+  <text x="854" y="356" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700" fill="#F5F9FC" text-anchor="middle" data-background="#13263A"><tspan x="854" dy="0">Skill Governor</tspan><tspan x="854" dy="26">Agent</tspan></text>
+  <text x="854" y="424" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="500" fill="#C7D8E6" text-anchor="middle" data-background="#13263A"><tspan x="854" dy="0">codex-skill-</tspan><tspan x="854" dy="25">governor</tspan></text>
+  </g>
+  </g>
+  <g id="legend" data-qa-box="true"><rect x="100" y="506" width="760" height="46" rx="8" fill="#274963"/><text x="480" y="536" font-family="Segoe UI,Arial,sans-serif" font-size="21" font-weight="600" fill="#F5F9FC" text-anchor="middle" data-background="#274963"><tspan x="480" dy="0">Solid: bounded delegation  |  Dashed: structured return</tspan></text></g>
+</svg>

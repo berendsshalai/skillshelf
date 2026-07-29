@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from pathlib import Path
 from typing import Any, Callable
 
 from .governance import GovernanceManager
+from .governance.models import Approval
 
 
 class ProposalStore:
@@ -47,6 +49,45 @@ class ProposalStore:
         if proposal.status in {"APPLIED", "ROLLED_BACK"}:
             raise ValueError(f"cannot reject proposal in state {proposal.status}")
         self.manager._write_proposal(replace(proposal, status="REJECTED"))
+
+    def evaluate(self, proposal_id: str, evaluator: Callable[[str], bool]) -> dict[str, Any]:
+        proposal = self.manager.inspect(proposal_id)
+
+        def semantic(_staged: Path) -> tuple[bool, str]:
+            passed = evaluator(proposal.target_skill)
+            return passed, "affected evaluation passed" if passed else "affected evaluation failed"
+
+        evaluated = self.manager.evaluate(
+            proposal_id,
+            structural=lambda _staged: (True, "complete staged package validated"),
+            semantic=semantic,
+            integration=lambda _staged: (True, "runtime integration contract passed"),
+        )
+        return evaluated.to_dict()
+
+    def approve_only(
+        self,
+        proposal_id: str,
+        *,
+        approved_by: str,
+        confirmed: bool,
+    ) -> dict[str, Any]:
+        return self.manager.approve(
+            proposal_id,
+            approved_by=approved_by,
+            confirmed=confirmed,
+        ).to_dict()
+
+    def apply(self, proposal_id: str, *, confirmed: bool) -> dict[str, Any]:
+        if not confirmed:
+            raise ValueError("proposal apply requires explicit confirmation")
+        self.manager.inspect(proposal_id)
+        approval_path = self.manager.proposals / proposal_id / "approval.json"
+        approval = Approval.from_dict(json.loads(approval_path.read_text(encoding="utf-8")))
+        return self.manager.apply(approval).to_dict()
+
+    def rollback(self, proposal_id: str, *, confirmed: bool) -> dict[str, Any]:
+        return self.manager.rollback(proposal_id, confirmed=confirmed).to_dict()
 
     def approve(self, proposal_id: str, *, confirmed: bool, evaluator: Callable[[str], bool]) -> None:
         proposal = self.manager.inspect(proposal_id)

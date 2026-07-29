@@ -34,6 +34,7 @@ RUNTIME_DIRECTORY_FILES = (
     "mcp/registry.yml",
     "docs/agents/OVERVIEW.md",
     "docs/integrations/DEPLOYMENT.md",
+    "docs/security/NETWORK_POLICY.md",
 )
 
 
@@ -60,9 +61,7 @@ def _write_sdist(path: Path, *, package_version: str = VERSION) -> None:
             f"Version: {package_version}\n\n"
         ).encode(),
         f"{root}/pyproject.toml": (
-            "[project]\n"
-            'name = "skillshelf-agents"\n'
-            f'version = "{package_version}"\n'
+            f'[project]\nname = "skillshelf-agents"\nversion = "{package_version}"\n'
         ).encode(),
     }
     with path.open("wb") as raw:
@@ -92,6 +91,7 @@ def _write_repository(repository: Path) -> None:
         "mcp/registry.yml": "servers: []\n",
         "docs/agents/OVERVIEW.md": "# Agents\n",
         "docs/integrations/DEPLOYMENT.md": "# Deployment\n",
+        "docs/security/NETWORK_POLICY.md": "# Network\n",
     }
     for relative, content in contents.items():
         target = repository / relative
@@ -162,7 +162,24 @@ def _refresh_metadata(release: Path) -> None:
                 "name": "skillshelf",
                 "SPDXID": "SPDXRef-Package-SkillShelf",
                 "versionInfo": VERSION,
-            }
+            },
+            {
+                "name": "fixture-dependency",
+                "SPDXID": "SPDXRef-Package-Fixture",
+                "versionInfo": "1.0.0",
+            },
+        ],
+        "relationships": [
+            {
+                "spdxElementId": "SPDXRef-DOCUMENT",
+                "relationshipType": "DESCRIBES",
+                "relatedSpdxElement": "SPDXRef-Package-SkillShelf",
+            },
+            {
+                "spdxElementId": "SPDXRef-Package-SkillShelf",
+                "relationshipType": "DEPENDS_ON",
+                "relatedSpdxElement": "SPDXRef-Package-Fixture",
+            },
         ],
     }
     (release / "SBOM.spdx.json").write_text(
@@ -185,8 +202,16 @@ def _refresh_metadata(release: Path) -> None:
         "predicate": {
             "buildDefinition": {
                 "buildType": "fixture",
-                "externalParameters": {"version": VERSION},
-                "resolvedDependencies": [],
+                "externalParameters": {
+                    "version": VERSION,
+                    "source": {"commit": "a" * 40, "dirty": False},
+                },
+                "resolvedDependencies": [
+                    {
+                        "uri": "fixture.lock",
+                        "digest": {"sha256": "b" * 64},
+                    }
+                ],
             },
             "runDetails": {"builder": {"id": "test fixture"}},
         },

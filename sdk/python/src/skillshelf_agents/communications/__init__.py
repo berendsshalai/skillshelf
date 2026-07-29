@@ -5,6 +5,15 @@ from .gateway import (
     MessageStatus,
     MockChannelAdapter,
 )
+from .providers import (
+    CommunicationsDoctor,
+    IdempotentWebhookReconciler,
+    MetaInstagramAdapter,
+    MetaWhatsAppAdapter,
+    SMTPAdapter,
+    TwilioSMSAdapter,
+    TwilioVoiceAdapter,
+)
 
 __all__ = [
     "CommunicationGateway",
@@ -12,4 +21,11 @@ __all__ = [
     "MessageIntent",
     "MessageStatus",
     "MockChannelAdapter",
+    "CommunicationsDoctor",
+    "IdempotentWebhookReconciler",
+    "MetaInstagramAdapter",
+    "MetaWhatsAppAdapter",
+    "SMTPAdapter",
+    "TwilioSMSAdapter",
+    "TwilioVoiceAdapter",
 ]

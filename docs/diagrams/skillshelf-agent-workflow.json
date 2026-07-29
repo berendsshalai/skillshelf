@@ -1,0 +1,188 @@
+{
+  "schema_version": 1,
+  "source": "agents/registry.yml",
+  "master": {
+    "id": "skillshelf-master",
+    "display_name": "SkillShelf Master",
+    "input_labels": [
+      "Goal, context, constraints",
+      "Files and approval authority"
+    ],
+    "process_labels": [
+      "Route the smallest sufficient set",
+      "Enforce budgets and approvals",
+      "Reconcile recorded evidence"
+    ],
+    "output_labels": [
+      "OrchestratorResult",
+      "Verified final response"
+    ],
+    "output_contract": "OrchestratorResult"
+  },
+  "specialists": [
+    {
+      "id": "find-skills-agent",
+      "display_name": "Find Skills Agent",
+      "skill": "find-skills-codex",
+      "input_labels": [
+        "Task and success criteria",
+        "Relevant paths and context",
+        "Authority: Read Files"
+      ],
+      "process_labels": [
+        "Load find-skills-codex",
+        "Invoke Find Skills Specialist",
+        "Record tool and usage evidence"
+      ],
+      "output_labels": [
+        "SpecialistResult",
+        "Findings and artifacts",
+        "Tests, risks, next action"
+      ],
+      "output_contract": "SpecialistResult"
+    },
+    {
+      "id": "superpowers-agent",
+      "display_name": "Superpowers Agent",
+      "skill": "superpowers-codex",
+      "input_labels": [
+        "Task and success criteria",
+        "Relevant paths and context",
+        "Authority: Read Files"
+      ],
+      "process_labels": [
+        "Load superpowers-codex",
+        "Invoke Software Methodology Specialist",
+        "Record tool and usage evidence"
+      ],
+      "output_labels": [
+        "SpecialistResult",
+        "Findings and artifacts",
+        "Tests, risks, next action"
+      ],
+      "output_contract": "SpecialistResult"
+    },
+    {
+      "id": "memory-agent",
+      "display_name": "Memory Agent",
+      "skill": "codex-memory",
+      "input_labels": [
+        "Task and success criteria",
+        "Relevant paths and context",
+        "Authority: Search Memory Index"
+      ],
+      "process_labels": [
+        "Load codex-memory",
+        "Invoke Project Memory Specialist",
+        "Record tool and usage evidence"
+      ],
+      "output_labels": [
+        "SpecialistResult",
+        "Findings and artifacts",
+        "Tests, risks, next action"
+      ],
+      "output_contract": "SpecialistResult"
+    },
+    {
+      "id": "design-intelligence-agent",
+      "display_name": "Design Intelligence Agent",
+      "skill": "codex-design-intelligence",
+      "input_labels": [
+        "Task and success criteria",
+        "Relevant paths and context",
+        "Authority: Read Files"
+      ],
+      "process_labels": [
+        "Load codex-design-intelligence",
+        "Invoke Design Intelligence Specialist",
+        "Record tool and usage evidence"
+      ],
+      "output_labels": [
+        "SpecialistResult",
+        "Findings and artifacts",
+        "Tests, risks, next action"
+      ],
+      "output_contract": "SpecialistResult"
+    },
+    {
+      "id": "skill-governor-agent",
+      "display_name": "Skill Governor Agent",
+      "skill": "codex-skill-governor",
+      "input_labels": [
+        "Task and success criteria",
+        "Relevant paths and context",
+        "Authority: Read Agent Events"
+      ],
+      "process_labels": [
+        "Load codex-skill-governor",
+        "Invoke Skill Governance Specialist",
+        "Record tool and usage evidence"
+      ],
+      "output_labels": [
+        "GovernanceResult",
+        "Findings and artifacts",
+        "Tests, risks, next action"
+      ],
+      "output_contract": "GovernanceResult"
+    }
+  ],
+  "delegation_edges": [
+    {
+      "from": "skillshelf-master",
+      "to": "find-skills-agent",
+      "label": "Bounded DelegationInput"
+    },
+    {
+      "from": "skillshelf-master",
+      "to": "superpowers-agent",
+      "label": "Bounded DelegationInput"
+    },
+    {
+      "from": "skillshelf-master",
+      "to": "memory-agent",
+      "label": "Bounded DelegationInput"
+    },
+    {
+      "from": "skillshelf-master",
+      "to": "design-intelligence-agent",
+      "label": "Bounded DelegationInput"
+    },
+    {
+      "from": "skillshelf-master",
+      "to": "skill-governor-agent",
+      "label": "Bounded DelegationInput"
+    }
+  ],
+  "return_edges": [
+    {
+      "from": "find-skills-agent",
+      "to": "skillshelf-master",
+      "label": "SpecialistResult"
+    },
+    {
+      "from": "superpowers-agent",
+      "to": "skillshelf-master",
+      "label": "SpecialistResult"
+    },
+    {
+      "from": "memory-agent",
+      "to": "skillshelf-master",
+      "label": "SpecialistResult"
+    },
+    {
+      "from": "design-intelligence-agent",
+      "to": "skillshelf-master",
+      "label": "SpecialistResult"
+    },
+    {
+      "from": "skill-governor-agent",
+      "to": "skillshelf-master",
+      "label": "GovernanceResult"
+    }
+  ],
+  "final_response_edge": {
+    "from": "skillshelf-master",
+    "to": "final-response",
+    "label": "Reconciled verified result"
+  }
+}
