@@ -14,7 +14,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 VALIDATOR = ROOT / "scripts" / "validate-release.py"
-VERSION = "0.3.0"
+VERSION = "0.4.0"
 WHEEL_NAME = f"skillshelf_agents-{VERSION}-py3-none-any.whl"
 SDIST_NAME = f"skillshelf_agents-{VERSION}.tar.gz"
 RUNTIME_FILES = (

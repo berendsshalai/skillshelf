@@ -1,8 +1,8 @@
-# SkillShelf 0.3.0 Handoff
+# SkillShelf 0.4.0 Handoff
 
 ## Release identity
 
-- Canonical version: `VERSION` (`0.3.0`)
+- Canonical version: `VERSION` (`0.4.0`)
 - Python distribution: `skillshelf-agents`
 - Import package: `skillshelf_agents`
 - CLI: `skillshelf`
@@ -73,7 +73,7 @@ The optional web extra supplies a limited FastAPI control plane. It validates/st
 
 Runtime-recorded artifacts, file changes, test executions, and tool calls are evidence. Agent summaries, findings, quality judgments, and evaluator commentary are model interpretation. Offline evaluation success must not be reported as credentialled model success.
 
-Deferred live work includes OpenAI model calls, upstream memory worker/MCP validation, external connector credentials, carrier rates, email/WhatsApp delivery, webhook signatures, and protected model-quality evaluation. No PostgreSQL deployment or generated OpenAPI artifact is part of 0.3.0.
+Deferred live work includes OpenAI model calls, upstream memory worker/MCP validation, external connector credentials, carrier rates, email/WhatsApp delivery, webhook signatures, and protected model-quality evaluation. No PostgreSQL deployment or generated OpenAPI artifact is part of 0.4.0.
 
 ## Verification sequence
 
@@ -91,12 +91,12 @@ Report actual results from the current checkout. Do not preserve historical pass
 
 ## Recovery
 
-For current 0.3.0 project installations:
+For current 0.4.0 project installations:
 
 1. Run `pwsh ./scripts/uninstall.ps1 -Scope Project`.
 2. Restore the relevant `.skillshelf-backup-<timestamp>` directory.
 3. For memory, run its dry-run uninstall/recovery command first and execute only after reviewing the reported target and backup.
-4. Re-clone with submodules and check out the intended 0.3.0 release reference when one is published.
+4. Re-clone with submodules and check out the intended 0.4.0 release reference when one is published.
 
 The old `v0.1.0` reconstruction instructions are historical and are not the current-release recovery path.
 

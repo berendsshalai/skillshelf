@@ -6,7 +6,7 @@ import sqlite3
 import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from pydantic import BaseModel
 
@@ -311,7 +311,7 @@ class RunCheckpointStore:
         content = path.read_bytes()
         if hashlib.sha256(content).hexdigest() != checkpoint.state_digest:
             raise ValueError("persisted SDK state digest does not match")
-        return json.loads(content)
+        return cast(dict[str, Any], json.loads(content))
 
     def mark_running(self, run_id: str) -> RunCheckpoint:
         return self._transition(run_id, "RUNNING")

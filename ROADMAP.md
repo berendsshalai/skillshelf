@@ -1,8 +1,8 @@
-# SkillShelf Roadmap after 0.3.0
+# SkillShelf Roadmap after 0.4.0
 
 ## Current baseline
 
-0.3.0 establishes:
+0.4.0 establishes:
 
 - one `VERSION` source with consistency validation across packaging surfaces;
 - five provenance-preserving skills;

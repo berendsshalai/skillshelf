@@ -16,7 +16,7 @@ def create_app(state_root: Path | str = ".skillshelf") -> FastAPI:
     connectors = root / "connectors"
     connectors.mkdir(parents=True, exist_ok=True)
     database = root / "operations.sqlite"
-    app = FastAPI(title="SkillShelf control plane", version="0.3.0")
+    app = FastAPI(title="SkillShelf control plane", version="0.4.0")
 
     def workflow_rows() -> list[dict[str, Any]]:
         if not database.exists():

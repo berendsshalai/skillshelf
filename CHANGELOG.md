@@ -2,6 +2,12 @@
 
 All notable changes follow [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and semantic versioning.
 
+## [0.4.0] - 2026-07-29
+
+### Changed
+
+- Aligned release surfaces, runtime metadata, validation, and workflow wiring to the 0.4.0 connectivity pass.
+
 ## [0.3.0] - 2026-07-28
 
 ### Added

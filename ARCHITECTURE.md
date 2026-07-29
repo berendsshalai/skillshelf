@@ -1,4 +1,4 @@
-# SkillShelf Architecture 0.3.0
+# SkillShelf Architecture 0.4.0
 
 ## Release and package model
 

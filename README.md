@@ -1,6 +1,6 @@
 # SkillShelf
 
-SkillShelf 0.3.0 is Sha-Lai Berends’ provenance-first Codex skill shelf, bounded agent runtime, and deterministic local integration proof. It preserves pinned upstream source slices and adds Codex packaging, an optional Python runtime, least-privilege policy, recovery operations, tests, and documentation.
+SkillShelf 0.4.0 is Sha-Lai Berends’ provenance-first Codex skill shelf, bounded agent runtime, and deterministic local integration proof. It preserves pinned upstream source slices and adds Codex packaging, an optional Python runtime, least-privilege policy, recovery operations, tests, and documentation.
 
 SkillShelf is a downstream integration and adaptation. It is not affiliated with or endorsed by OpenAI, Anthropic, Vercel, or any upstream author.
 

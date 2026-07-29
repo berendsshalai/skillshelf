@@ -22,4 +22,4 @@ def __getattr__(name: str) -> object:
 try:
     __version__ = version("skillshelf-agents")
 except PackageNotFoundError:
-    __version__ = "0.3.0"
+    __version__ = "0.4.0"

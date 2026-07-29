@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
+from typing import Any, cast
 
 from agents import FunctionTool, function_tool
 
@@ -76,7 +76,7 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "read_text_file",
                 {"path": path},
-                lambda: filesystem.read_text_file(path).model_dump(),
+                lambda: cast(dict[str, Any], filesystem.read_text_file(path).model_dump()),
             )
 
         def read_binary_metadata(path: str) -> dict[str, Any]:
@@ -84,7 +84,9 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "read_binary_metadata",
                 {"path": path},
-                lambda: filesystem.read_binary_metadata(path).model_dump(),
+                lambda: cast(
+                    dict[str, Any], filesystem.read_binary_metadata(path).model_dump()
+                ),
             )
 
         def list_directory(path: str = ".") -> list[str]:
@@ -92,7 +94,7 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "list_directory",
                 {"path": path},
-                lambda: filesystem.list_directory(path),
+                lambda: cast(list[str], filesystem.list_directory(path)),
             )
 
         def search_text(query: str, path: str = ".", max_results: int = 100) -> list[dict[str, Any]]:
@@ -100,7 +102,10 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "search_text",
                 {"query": query, "path": path, "max_results": max_results},
-                lambda: [item.model_dump() for item in filesystem.search_text(query, path, max_results)],
+                lambda: cast(
+                    list[dict[str, Any]],
+                    [item.model_dump() for item in filesystem.search_text(query, path, max_results)],
+                ),
             )
 
         return [
@@ -118,7 +123,7 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "write_text_file",
                 {"path": path, "content": content},
-                lambda: filesystem.write_text_file(path, content).model_dump(),
+                lambda: cast(dict[str, Any], filesystem.write_text_file(path, content).model_dump()),
             )
 
         def apply_unified_patch(patch: str) -> list[dict[str, Any]]:
@@ -126,7 +131,10 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "apply_unified_patch",
                 {"patch": patch},
-                lambda: [item.model_dump() for item in filesystem.apply_unified_patch(patch)],
+                lambda: cast(
+                    list[dict[str, Any]],
+                    [item.model_dump() for item in filesystem.apply_unified_patch(patch)],
+                ),
             )
 
         def create_directory(path: str) -> str:
@@ -134,7 +142,7 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "create_directory",
                 {"path": path},
-                lambda: filesystem.create_directory(path),
+                lambda: cast(str, filesystem.create_directory(path)),
             )
 
         return [
@@ -151,7 +159,7 @@ class CapabilityToolRegistry:
             return self._recorded(
                 "run_safe_command",
                 {"request": request.model_dump(mode="json")},
-                lambda: executor.run(request).model_dump(),
+                lambda: cast(dict[str, Any], executor.run(request).model_dump()),
             )
 
         return [function_tool(run_safe_command)]

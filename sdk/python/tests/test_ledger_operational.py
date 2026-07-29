@@ -13,7 +13,7 @@ def test_run_ledger_records_lifecycle_tools_usage_and_terminal_error(tmp_path: P
         trace_id="trace-1",
         session_id="session-1",
         canonical_input={"task": "inspect"},
-        configuration_version="0.3.0",
+        configuration_version="0.4.0",
     )
     ledger.transition("run-1", RunStatus.ROUTED)
     ledger.transition("run-1", RunStatus.RUNNING)
@@ -56,7 +56,7 @@ def test_run_ledger_rejects_invalid_terminal_transition(tmp_path: Path) -> None:
         trace_id="trace-1",
         session_id="session-1",
         canonical_input={"task": "inspect"},
-        configuration_version="0.3.0",
+        configuration_version="0.4.0",
     )
     ledger.transition("run-1", RunStatus.COMPLETED)
 

@@ -302,7 +302,7 @@ class SkillShelfOrchestrator:
             trace_id=trace_id,
             session_id=scoped,
             canonical_input={"task": task, "explicit_agent": explicit_agent},
-            configuration_version="0.3.0",
+            configuration_version="0.4.0",
         )
         decision = route_task(task, explicit_agent)
         self.ledger.transition(run_id, RunStatus.ROUTED)
