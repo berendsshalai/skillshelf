@@ -441,7 +441,7 @@ def render_checks(
         stderr_text = stderr_path.read_text(encoding="utf-8", errors="replace")
         if completed.returncode:
             fail(
-                f"{path.name} renderer failed at {width}px: "
+                f"{path.name} renderer failed: "
                 + (stderr_text.strip() or f"exit {completed.returncode}")
             )
         match = re.search(r'<pre id="qa">(.*?)</pre>', stdout_text, re.DOTALL)
